@@ -19,7 +19,7 @@
         .brand-logo { width: 35px; height: 35px; border-radius: 8px; }
         .brand-name { font-size: 20px; font-weight: bold; color: #00a884; letter-spacing: 0.5px; }
 
-        /* User Profile DP Bar */
+        /* User Profile Header Bar */
         .user-profile-bar { background: #182229; padding: 12px 16px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border: 1px solid #202c33; }
         .profile-left { display: flex; align-items: center; gap: 12px; }
         .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #00a884; background: #0b141a; }
@@ -64,7 +64,6 @@
         <h3 id="authTitle" style="color: #8696a0; margin-bottom: 15px; font-size: 15px;">Login to Your Account</h3>
         <input type="text" id="authPhone" placeholder="Mobile Number (e.g., 03001234567)">
         <input type="password" id="authPassword" placeholder="Password">
-        <input type="text" id="referredByInput" placeholder="Referral ID (Optional)">
         <button class="btn" id="authBtn" onclick="handleAuth()">Login</button>
         <p class="link-text" id="toggleAuth" onclick="toggleAuthMode()">Don't have an account? Sign Up</p>
     </div>
@@ -72,13 +71,12 @@
     <!-- 2. MAIN DASHBOARD -->
     <div id="dashboardScreen" class="hidden">
         
-        <!-- Top App Brand Header -->
         <div class="brand-header">
             <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="brand-logo" alt="Logo">
             <span class="brand-name">AdEarn Rewards</span>
         </div>
 
-        <!-- User Profile Header Bar -->
+        <!-- User Profile Bar (Only Shows Auto-generated Private ID) -->
         <div class="user-profile-bar">
             <div class="profile-left">
                 <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AdUser" id="userDp" class="user-avatar" alt="DP">
@@ -182,25 +180,9 @@
     let lastAdTimestamp = 0;
     let myReferrerId = null;
 
-    // Get or Create Unique Device ID (One Account per Phone Rule)
-    function getDeviceId() {
-        let deviceId = localStorage.getItem('app_device_uuid');
-        if (!deviceId) {
-            deviceId = 'DEV-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now();
-            localStorage.setItem('app_device_uuid', deviceId);
-        }
-        return deviceId;
-    }
-
-    const currentDeviceId = getDeviceId();
-
-    // Check URL parameters for Referral
+    // Capture URL Referral parameter automatically
     const urlParams = new URLSearchParams(window.location.search);
-    const refFromUrl = urlParams.get('ref');
-
-    if (refFromUrl) {
-        document.getElementById('referredByInput').value = refFromUrl;
-    }
+    const autoRefId = urlParams.get('ref') || null;
 
     if (currentUserPhone) {
         showDashboard();
@@ -211,15 +193,7 @@
         document.getElementById('authTitle').innerText = isLoginMode ? "Login to Your Account" : "Create New Account";
         document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Sign Up";
         document.getElementById('toggleAuth').innerText = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
-        
-        if (isLoginMode) {
-            document.getElementById('referredByInput').classList.add('hidden');
-        } else {
-            document.getElementById('referredByInput').classList.remove('hidden');
-        }
     }
-
-    document.getElementById('referredByInput').classList.add('hidden');
 
     function generateUniqueId() {
         return 'ID-' + Math.floor(100000 + Math.random() * 900000);
@@ -228,7 +202,6 @@
     function handleAuth() {
         let phone = document.getElementById('authPhone').value.trim();
         let pass = document.getElementById('authPassword').value.trim();
-        let refById = document.getElementById('referredByInput').value.trim();
 
         if (!phone || !pass) {
             alert("Please fill all details!");
@@ -236,19 +209,12 @@
         }
 
         let userRef = database.ref('users/' + phone);
-        let deviceRef = database.ref('registered_devices/' + currentDeviceId);
 
         if (isLoginMode) {
             userRef.once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     let userData = snapshot.val();
                     if (userData.password === pass) {
-                        // Check if device matches
-                        if (userData.device_id && userData.device_id !== currentDeviceId) {
-                            alert("❌ Unauthorized! You can only access this account from your registered mobile device.");
-                            return;
-                        }
-
                         localStorage.setItem('loggedInUser', phone);
                         currentUserPhone = phone;
                         showDashboard();
@@ -260,57 +226,46 @@
                 }
             });
         } else {
-            // SIGN UP - CHECK STRICT ONE ACCOUNT PER DEVICE RULE
-            deviceRef.once('value', (deviceSnap) => {
-                if (deviceSnap.exists()) {
-                    alert("❌ ERROR: Only 1 account is allowed per device!\n\nThis phone already has a registered account. Creating multiple accounts is blocked.");
-                    return;
-                }
+            // SIGN UP PROCESS
+            userRef.once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    alert("❌ Mobile number already registered! Please Login.");
+                } else {
+                    let newGeneratedId = generateUniqueId();
+                    
+                    let newUserObj = {
+                        user_id: newGeneratedId,
+                        password: pass,
+                        coins: 0,
+                        created_at: new Date().toISOString()
+                    };
 
-                userRef.once('value', (snapshot) => {
-                    if (snapshot.exists()) {
-                        alert("❌ Mobile number already registered!");
-                    } else {
-                        let newGeneratedId = generateUniqueId();
-                        
-                        let newUserObj = {
-                            user_id: newGeneratedId,
-                            password: pass,
-                            coins: 0,
-                            device_id: currentDeviceId,
-                            created_at: new Date().toISOString()
-                        };
+                    if (autoRefId) {
+                        newUserObj.referred_by = autoRefId;
+                    }
 
-                        if (refById && refById !== newGeneratedId) {
-                            newUserObj.referred_by = refById;
+                    userRef.set(newUserObj).then(() => {
+                        database.ref('id_map/' + newGeneratedId).set(phone);
+
+                        if (autoRefId) {
+                            database.ref('id_map/' + autoRefId).once('value', (refSnap) => {
+                                if (refSnap.exists()) {
+                                    let refPhone = refSnap.val();
+                                    database.ref('users/' + refPhone + '/referral_count').transaction((count) => {
+                                        return (count || 0) + 1;
+                                    });
+                                }
+                            });
                         }
 
-                        // Save user & bind device ID
-                        userRef.set(newUserObj).then(() => {
-                            // Register Device to prevent multiple accounts
-                            deviceRef.set(phone);
-
-                            // Create ID Mapping in Database
-                            database.ref('id_map/' + newGeneratedId).set(phone);
-
-                            if (refById && refById !== newGeneratedId) {
-                                database.ref('id_map/' + refById).once('value', (refSnap) => {
-                                    if (refSnap.exists()) {
-                                        let refPhone = refSnap.val();
-                                        database.ref('users/' + refPhone + '/referral_count').transaction((count) => {
-                                            return (count || 0) + 1;
-                                        });
-                                    }
-                                });
-                            }
-
-                            alert("✅ Account created successfully!");
-                            localStorage.setItem('loggedInUser', phone);
-                            currentUserPhone = phone;
-                            showDashboard();
-                        });
-                    }
-                });
+                        alert("✅ Account created successfully!");
+                        localStorage.setItem('loggedInUser', phone);
+                        currentUserPhone = phone;
+                        showDashboard();
+                    }).catch(err => {
+                        alert("Error: " + err.message);
+                    });
+                }
             });
         }
     }
@@ -323,8 +278,18 @@
 
         database.ref('users/' + currentUserPhone).on('value', (snapshot) => {
             let val = snapshot.val() || {};
-            userCoins = val.coins || 0;
-            currentUserId = val.user_id || "ID-000000";
+            
+            // 🔥 BACKWARD COMPATIBILITY & OLD USER AUTO-MIGRATION
+            if (!val.user_id) {
+                let generatedNewId = generateUniqueId();
+                database.ref('users/' + currentUserPhone).update({ user_id: generatedNewId });
+                database.ref('id_map/' + generatedNewId).set(currentUserPhone);
+                currentUserId = generatedNewId;
+            } else {
+                currentUserId = val.user_id;
+            }
+
+            userCoins = val.coins || 0; // Existing balance is completely preserved!
             myReferrerId = val.referred_by || null;
             let refCount = val.referral_count || 0;
 
@@ -442,4 +407,46 @@
                             }
                         });
                     }
-                    alert("Awesome! +10 Coins a
+                    alert("Awesome! +10 Coins added.");
+                });
+            }
+        }, 1000);
+    }
+
+    function withdraw() {
+        let method = document.getElementById('method').value;
+        let acc = document.getElementById('accountNo').value.trim();
+
+        if (!acc) {
+            alert("Please enter account details!");
+            return;
+        }
+
+        if (userCoins < 30000) {
+            alert("Minimum withdraw limit is $5.00 (30,000 Coins)!");
+            return;
+        }
+
+        let remainingCoins = userCoins - 30000;
+        database.ref('users/' + currentUserPhone + '/coins').set(remainingCoins);
+
+        let msg = `Hello Admin, I requested a Withdrawal!\n\n🆔 User ID: ${currentUserId}\n💳 Payment Method: ${method}\n🏦 Account Number: ${acc}\n💵 Amount: $5.00 USD (30,000 Coins)`;
+        
+        alert("Withdrawal request created! Click OK to send details directly to Admin on Telegram.");
+        window.open(`https://t.me/${telegramSupportUsername}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function openSupport() {
+        let msg = `Hello Admin, I need help regarding my account (ID: ${currentUserId})`;
+        window.open(`https://t.me/${telegramSupportUsername}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function logout() {
+        localStorage.removeItem('loggedInUser');
+        location.reload();
+    }
+</script>
+
+</body>
+                </html>
+                
