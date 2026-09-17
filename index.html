@@ -73,7 +73,7 @@
 
         <div class="card">
             <h3 style="color: #00a884; margin-bottom: 10px;">Ad Task</h3>
-            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Click ad, stay on page for 1 Minute to get reward.</p>
+            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Click ad, stay on page for 15 Seconds to get reward.</p>
             <button class="btn" id="watchBtn" onclick="startAdsterraTask()">Watch Ad & Earn 🪙</button>
         </div>
 
@@ -124,7 +124,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // آپ کا دیا ہوا لنک یہاں مکمل طور پر فٹ کر دیا گیا ہے
+    // آپ کا دیا ہوا ایڈ س্টিرا لنک
     const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
 
     let isLogin = true;
@@ -134,7 +134,7 @@
     let myReferrerId = null;
     
     const DAILY_AD_LIMIT = 25;
-    const AD_TIMER_SECONDS = 60; // 1 Minute Timer
+    const AD_TIMER_SECONDS = 15; // اب ٹائمر صرف 15 سیکنڈ کا ہے
 
     let todayAdsWatched = 0;
     let totalAdsWatched = 0;
@@ -292,7 +292,7 @@
             return;
         }
 
-        // آپ کا لنک نئی ٹیب میں اوپن ہوگا تاکہ کلک کاؤنت ہو
+        // ایڈ س্টিرا لنک اوپن ہوگا تاکہ کلک کاؤنٹ ہو
         window.open(ADSTERRA_LINK, '_blank');
 
         let btn = document.getElementById('watchBtn');
@@ -335,7 +335,7 @@
             total_ads_watched: totalAdsWatched,
             last_ad_date: todayDate
         }).then(() => {
-            alert("🎉 مبارک ہو! آپ کے بیلنس میں 10 کوائنز ایڈ ہو گئے ہیں۔");
+            alert("🎉 مبارک ہو! 15 سیکنڈ مکمل ہونے پر 10 کوائنز آپ کے بیلنس میں ایڈ ہو گئے ہیں۔");
 
             if (myReferrerId) {
                 db.ref('id_map/' + myReferrerId).once('value', refSnap => {
@@ -389,5 +389,4 @@
 </script>
 
 </body>
-                </html>
-                
+</html>
