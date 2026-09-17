@@ -72,9 +72,9 @@
         </div>
 
         <div class="card">
-            <h3 style="color: #00a884; margin-bottom: 10px;">Daily Ad Tasks</h3>
-            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Watch ad for 15 seconds to earn +10 Coins.</p>
-            <button class="btn" id="watchBtn" onclick="startAdTask()">Watch Ad & Earn 🪙</button>
+            <h3 style="color: #00a884; margin-bottom: 10px;">Ad Task</h3>
+            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Click ad, stay on page for 1 Minute to get reward.</p>
+            <button class="btn" id="watchBtn" onclick="startAdsterraTask()">Watch Ad & Earn 🪙</button>
         </div>
 
         <!-- REFERRAL SYSTEM CARD -->
@@ -124,46 +124,27 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // آپ کا دیا ہوا لنک یہاں مکمل طور پر فٹ کر دیا گیا ہے
+    const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
+
     let isLogin = true;
     let currentUserPhone = localStorage.getItem('activeUser') || null;
     let userCoins = 0;
     let userId = "";
     let myReferrerId = null;
-
-    const adLink = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
     
     const DAILY_AD_LIMIT = 25;
-    const COOLDOWN_TIME = 30; 
-    const MANDATORY_AD_TIME = 15; 
+    const AD_TIMER_SECONDS = 60; // 1 Minute Timer
 
     let todayAdsWatched = 0;
     let totalAdsWatched = 0;
-    let lastAdTimestamp = 0;
 
     const urlParams = new URLSearchParams(window.location.search);
     const autoRefId = urlParams.get('ref') || null;
 
-    // Check if returning from ad via localStorage flag
-    window.onload = function() {
-        let adStartedTime = localStorage.getItem('ad_started_timestamp');
-        if (adStartedTime) {
-            localStorage.removeItem('ad_started_timestamp');
-            let timeElapsed = Math.floor((Date.now() - Number(adStartedTime)) / 1000);
-            
-            if (timeElapsed < MANDATORY_AD_TIME) {
-                alert("❌ ایڈ مکمل نہیں ہوا!\nآپ نے صرف " + timeElapsed + " سیکنڈ دیکھے ہیں (کم از کم 15 سیکنڈ ضروری ہیں)۔ اس لیے کوائنز نہیں ملے۔");
-            } else {
-                // Successfully watched 15+ seconds
-                if (currentUserPhone) {
-                    grantAdRewardLocallyAndRemotely(currentUserPhone);
-                }
-            }
-        }
-
-        if (currentUserPhone) {
-            loadDashboard(currentUserPhone);
-        }
-    };
+    if (currentUserPhone) {
+        loadDashboard(currentUserPhone);
+    }
 
     function toggleMode() {
         isLogin = !isLogin;
@@ -221,7 +202,6 @@
                         daily_ad_count: 0,
                         total_ads_watched: 0,
                         last_ad_date: "",
-                        last_ad_timestamp: 0,
                         created_at: new Date().toISOString()
                     };
 
@@ -263,7 +243,6 @@
 
         let todayDate = new Date().toISOString().split('T')[0];
 
-        // Fetch once + listen for updates to ensure balance shows immediately
         db.ref('users/' + phone).on('value', snapshot => {
             let val = snapshot.val();
             if (val) {
@@ -282,7 +261,6 @@
 
                 todayAdsWatched = (val.last_ad_date === todayDate) ? (Number(val.daily_ad_count) || 0) : 0;
                 totalAdsWatched = Number(val.total_ads_watched) || 0;
-                lastAdTimestamp = Number(val.last_ad_timestamp) || 0;
 
                 updateBalanceUI();
                 document.getElementById('displayUserId').innerText = userId;
@@ -291,7 +269,14 @@
                 let currentCleanUrl = window.location.href.split('?')[0];
                 document.getElementById('refLink').innerText = `${currentCleanUrl}?ref=${userId}`;
 
-                checkCooldownStatus();
+                let btn = document.getElementById('watchBtn');
+                if (todayAdsWatched >= DAILY_AD_LIMIT) {
+                    btn.disabled = true;
+                    btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                } else {
+                    btn.disabled = false;
+                    btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                }
             }
         });
     }
@@ -301,92 +286,63 @@
         document.getElementById('dollars').innerText = (userCoins * (5 / 30000)).toFixed(2);
     }
 
-    function checkCooldownStatus() {
-        let btn = document.getElementById('watchBtn');
-        let currentTime = Date.now();
-        let timePassed = Math.floor((currentTime - lastAdTimestamp) / 1000);
-
-        if (todayAdsWatched >= DAILY_AD_LIMIT) {
-            btn.disabled = true;
-            btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-            return;
-        }
-
-        if (timePassed < COOLDOWN_TIME) {
-            let remaining = COOLDOWN_TIME - timePassed;
-            btn.disabled = true;
-            btn.innerText = `Wait (${remaining}s)...`;
-            
-            let timer = setInterval(() => {
-                remaining--;
-                if (remaining <= 0) {
-                    clearInterval(timer);
-                    btn.disabled = false;
-                    btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-                } else {
-                    btn.innerText = `Wait (${remaining}s)...`;
-                }
-            }, 1000);
-        } else {
-            btn.disabled = false;
-            btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-        }
-    }
-
-    function startAdTask() {
-        let currentTime = Date.now();
-        let timePassed = Math.floor((currentTime - lastAdTimestamp) / 1000);
-
+    function startAdsterraTask() {
         if (todayAdsWatched >= DAILY_AD_LIMIT) {
             alert("Daily 25 Ads limit reached!");
             return;
         }
 
-        if (timePassed < COOLDOWN_TIME) {
-            alert(`Please wait ${COOLDOWN_TIME - timePassed} seconds before watching the next ad.`);
-            return;
-        }
+        // آپ کا لنک نئی ٹیب میں اوپن ہوگا تاکہ کلک کاؤنت ہو
+        window.open(ADSTERRA_LINK, '_blank');
 
-        // Save exact timestamp when ad was clicked
-        localStorage.setItem('ad_started_timestamp', Date.now().toString());
+        let btn = document.getElementById('watchBtn');
+        btn.disabled = true;
+        let timeLeft = AD_TIMER_SECONDS;
 
-        // Open ad link directly
-        window.location.href = adLink;
+        btn.innerText = `Ad Running... (${timeLeft}s)`;
+
+        let timerInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                btn.innerText = `Ad Running... (${timeLeft}s)`;
+            } else {
+                clearInterval(timerInterval);
+                grantReward(btn);
+            }
+        }, 1000);
     }
 
-    function grantAdRewardLocallyAndRemotely(phone) {
+    function grantReward(btn) {
         let todayDate = new Date().toISOString().split('T')[0];
+        let phone = localStorage.getItem('activeUser');
 
-        db.ref('users/' + phone).once('value').then(snapshot => {
-            let val = snapshot.val();
-            if (val) {
-                let currentCoins = Number(val.coins) || 0;
-                let currentDailyAds = (val.last_ad_date === todayDate) ? (Number(val.daily_ad_count) || 0) : 0;
-                let currentTotalAds = Number(val.total_ads_watched) || 0;
+        userCoins += 10;
+        todayAdsWatched += 1;
+        totalAdsWatched += 1;
+        updateBalanceUI();
 
-                currentCoins += 10;
-                currentDailyAds += 1;
-                currentTotalAds += 1;
-                let newTimestamp = Date.now();
+        if (todayAdsWatched >= DAILY_AD_LIMIT) {
+            btn.disabled = true;
+            btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+        } else {
+            btn.disabled = false;
+            btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+        }
 
-                db.ref('users/' + phone).update({
-                    coins: currentCoins,
-                    daily_ad_count: currentDailyAds,
-                    total_ads_watched: currentTotalAds,
-                    last_ad_date: todayDate,
-                    last_ad_timestamp: newTimestamp
-                }).then(() => {
-                    alert("🎉 مبارک ہو! آپ کو 10 کوائنز مل گئے ہیں اور فائر بیس میں ایڈ کاؤنت اپڈیٹ ہو گیا ہے۔");
+        db.ref('users/' + phone).update({
+            coins: userCoins,
+            daily_ad_count: todayAdsWatched,
+            total_ads_watched: totalAdsWatched,
+            last_ad_date: todayDate
+        }).then(() => {
+            alert("🎉 مبارک ہو! آپ کے بیلنس میں 10 کوائنز ایڈ ہو گئے ہیں۔");
 
-                    // Referral commission update
-                    if (val.referred_by) {
-                        db.ref('id_map/' + val.referred_by).once('value', refSnap => {
-                            if (refSnap.exists()) {
-                                let refPhone = refSnap.val();
-                                db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
-                                    return (Number(refCoins) || 0) + 1;
-                                });
-                            }
+            if (myReferrerId) {
+                db.ref('id_map/' + myReferrerId).once('value', refSnap => {
+                    if (refSnap.exists()) {
+                        let refPhone = refSnap.val();
+                        db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
+                            return (Number(refCoins) || 0) + 1;
                         });
                     }
                 });
@@ -433,5 +389,5 @@
 </script>
 
 </body>
-    </html>
-    
+                </html>
+                
