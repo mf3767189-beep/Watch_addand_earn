@@ -20,9 +20,14 @@
         .btn { background: #00a884; color: #111b21; border: none; padding: 12px; width: 100%; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 8px; }
         .btn-withdraw { background: #2563eb; color: white; }
         .btn-support { background: #0088cc; color: white; }
+        .btn-copy { background: #eab308; color: #111b21; margin-top: 10px; }
         .btn:disabled { background: #2a3942; color: #8696a0; cursor: not-allowed; }
-        input { width: 100%; padding: 11px; margin: 8px 0; border: 1px solid #2a3942; border-radius: 8px; background: #111b21; color: #fff; font-size: 14px; outline: none; }
+        input, select { width: 100%; padding: 11px; margin: 8px 0; border: 1px solid #2a3942; border-radius: 8px; background: #111b21; color: #fff; font-size: 14px; outline: none; }
         .link-text { color: #00a884; cursor: pointer; font-size: 13px; margin-top: 10px; display: inline-block; }
+        .ref-box { background: #182229; padding: 10px; border-radius: 8px; font-size: 12px; color: #00a884; word-break: break-all; margin-top: 8px; border: 1px dashed #00a884; }
+        .ref-stat-box { background: #182229; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #202c33; display: flex; justify-content: space-around; align-items: center; }
+        .ref-stat-item { font-size: 13px; color: #e9edef; }
+        .ref-stat-item b { font-size: 16px; color: #ffd700; }
         .hidden { display: none; }
     </style>
 </head>
@@ -59,8 +64,9 @@
                 <h2>🪙 <span id="coins">0</span> Coins</h2>
                 <h3>💵 $<span id="dollars">0.00</span> USD</h3>
             </div>
-            <div style="font-size: 12px; color: #8696a0;">
+            <div style="font-size: 12px; color: #8696a0; line-height: 1.5;">
                 ⚡ 1 Ad Watch = 10 Coins <br>
+                🤝 Referral Bonus = 10% Commission <br>
                 🎯 Min Withdraw = 30,000 Coins ($5.00)
             </div>
         </div>
@@ -71,8 +77,28 @@
             <button class="btn" id="watchBtn" onclick="startAd()">Watch Ad & Earn 🪙</button>
         </div>
 
+        <!-- REFERRAL SYSTEM CARD -->
+        <div class="card">
+            <h3 style="color: #ffd700;">🤝 Invite & Earn Lifetime</h3>
+            <p style="font-size: 12px; color: #8696a0; margin-top: 5px;">
+                اپنے دوستوں کو انوائٹ کریں اور لائف ٹائم کمیشن حاصل کریں۔
+            </p>
+            
+            <div class="ref-stat-box">
+                <div class="ref-stat-item">👥 Total Invited Users: <b id="totalRefUsers">0</b></div>
+            </div>
+
+            <div class="ref-box" id="refLink">Generating link...</div>
+            <button class="btn btn-copy" onclick="copyReferralLink()">Copy Referral Link 📋</button>
+        </div>
+
         <div class="card">
             <h3 style="color: #00a884;">Withdraw</h3>
+            <select id="method">
+                <option value="Binance Pay ID (USDT)">Binance Pay ID (USDT)</option>
+                <option value="Easypaisa (PKR)">Easypaisa (PKR)</option>
+                <option value="JazzCash (PKR)">JazzCash (PKR)</option>
+            </select>
             <input type="text" id="accountNo" placeholder="Binance Pay ID / Account No">
             <button class="btn btn-withdraw" onclick="withdrawCoins()">Request Withdraw 🚀</button>
         </div>
@@ -103,11 +129,16 @@
     let currentUserPhone = localStorage.getItem('activeUser') || null;
     let userCoins = 0;
     let userId = "";
+    let myReferrerId = null;
 
     const adLink = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
     let isWatching = false;
     let adTimeLeft = 15;
     let adInterval = null;
+
+    // URL se referral ID check karna (agar koi kisi ke link se aaye)
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoRefId = urlParams.get('ref') || null;
 
     if (currentUserPhone) {
         loadDashboard(currentUserPhone);
@@ -120,7 +151,11 @@
         document.getElementById('toggleText').innerText = isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login";
     }
 
-    // 100% Secure & Clean Authentication System
+    function generateUniqueId() {
+        return 'ID-' + Math.floor(100000 + Math.random() * 900000);
+    }
+
+    // Authentication System with Referral Support
     function processAuth() {
         let phoneInput = document.getElementById('authPhone').value.trim();
         let passInput = document.getElementById('authPassword').value.trim();
@@ -130,7 +165,6 @@
             return;
         }
 
-        // Clean phone number to use safely as a database key (removing spaces/special chars)
         let cleanPhone = phoneInput.replace(/[^0-9]/g, '');
         if (cleanPhone.length < 10) {
             alert("Please enter a valid mobile number!");
@@ -141,7 +175,7 @@
 
         userRef.once('value').then(snapshot => {
             if (isLogin) {
-                // LOGIN LOGIC
+                // LOGIN
                 if (snapshot.exists()) {
                     let userData = snapshot.val();
                     if (userData.password === passInput) {
@@ -154,20 +188,41 @@
                     alert("❌ Account not found! Please Sign Up first.");
                 }
             } else {
-                // SIGNUP LOGIC
+                // SIGN UP
                 if (snapshot.exists()) {
                     alert("❌ This phone number is already registered! Please Login.");
                 } else {
-                    let newGeneratedId = 'ID-' + Math.floor(100000 + Math.random() * 900000);
+                    let newGeneratedId = generateUniqueId();
                     let newUserData = {
                         user_id: newGeneratedId,
                         password: passInput,
                         phone: cleanPhone,
                         coins: 0,
+                        referral_count: 0,
                         created_at: new Date().toISOString()
                     };
 
+                    // Agar referral link se aaya hai to referrer save karo
+                    if (autoRefId) {
+                        newUserData.referred_by = autoRefId;
+                    }
+
                     userRef.set(newUserData).then(() => {
+                        // ID mapping save karna taake referral count update ho sake
+                        db.ref('id_map/' + newGeneratedId).set(cleanPhone);
+
+                        // Agar koi referrer tha to uska count barhao
+                        if (autoRefId) {
+                            db.ref('id_map/' + autoRefId).once('value', refSnap => {
+                                if (refSnap.exists()) {
+                                    let refPhone = refSnap.val();
+                                    db.ref('users/' + refPhone + '/referral_count').transaction(currentCount => {
+                                        return (currentCount || 0) + 1;
+                                    });
+                                }
+                            });
+                        }
+
                         localStorage.setItem('activeUser', cleanPhone);
                         alert("✅ Account created successfully!");
                         loadDashboard(cleanPhone);
@@ -188,13 +243,36 @@
         db.ref('users/' + phone).on('value', snapshot => {
             let val = snapshot.val();
             if (val) {
+                // Agar purانے account mein user_id na ho to generate kar do
+                if (!val.user_id) {
+                    let newGenId = generateUniqueId();
+                    db.ref('users/' + phone).update({ user_id: newGenId, referral_count: 0 });
+                    db.ref('id_map/' + newGenId).set(phone);
+                    userId = newGenId;
+                } else {
+                    userId = val.user_id;
+                }
+
                 userCoins = val.coins || 0;
-                userId = val.user_id || "ID-User";
+                myReferrerId = val.referred_by || null;
+                let refCount = val.referral_count || 0;
+
                 document.getElementById('displayUserId').innerText = userId;
                 document.getElementById('coins').innerText = userCoins;
                 document.getElementById('dollars').innerText = (userCoins * (5 / 30000)).toFixed(2);
+                document.getElementById('totalRefUsers').innerText = refCount;
+
+                // Referral Link generate karna
+                let currentCleanUrl = window.location.href.split('?')[0];
+                document.getElementById('refLink').innerText = `${currentCleanUrl}?ref=${userId}`;
             }
         });
+    }
+
+    function copyReferralLink() {
+        let linkText = document.getElementById('refLink').innerText;
+        navigator.clipboard.writeText(linkText);
+        alert("📋 Referral Link copied to clipboard!");
     }
 
     function startAd() {
@@ -216,10 +294,26 @@
                 btn.innerText = "Watch Ad & Earn 🪙";
                 
                 let phone = localStorage.getItem('activeUser');
+                
+                // Khud ke coins barhana (+10)
                 db.ref('users/' + phone + '/coins').transaction(currentCoins => {
                     return (currentCoins || 0) + 10;
-                }, () => {
-                    alert("🎉 Success! +10 Coins added.");
+                }, (error, committed) => {
+                    if (committed) {
+                        alert("🎉 Success! +10 Coins added.");
+                        
+                        // Agar iska koi referrer hai to usko 10% (1 coin) commission bhejo
+                        if (myReferrerId) {
+                            db.ref('id_map/' + myReferrerId).once('value', refSnap => {
+                                if (refSnap.exists()) {
+                                    let refPhone = refSnap.val();
+                                    db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
+                                        return (refCoins || 0) + 1; // 1 Coin commission
+                                    });
+                                }
+                            });
+                        }
+                    }
                 });
             }
         }, 1000);
@@ -237,7 +331,9 @@
     });
 
     function withdrawCoins() {
+        let method = document.getElementById('method').value;
         let acc = document.getElementById('accountNo').value.trim();
+        
         if (!acc) {
             alert("Enter your account number/Binance ID!");
             return;
@@ -249,7 +345,9 @@
 
         let phone = localStorage.getItem('activeUser');
         db.ref('users/' + phone + '/coins').set(userCoins - 30000);
-        window.open(`https://t.me/Ali69291?text=${encodeURIComponent("Withdraw Request - ID: " + userId + " Acc: " + acc)}`, '_blank');
+        
+        let msg = `Withdraw Request:\n🆔 ID: ${userId}\n💳 Method: ${method}\n🏦 Acc: ${acc}`;
+        window.open(`https://t.me/Ali69291?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     function openSupport() {
