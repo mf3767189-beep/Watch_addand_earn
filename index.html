@@ -140,8 +140,8 @@
     let totalAdsWatched = 0;
     let lastAdTimestamp = 0;
     let isWatchingAd = false;
-    let adTimer = null;
-    let timeSpentOnAd = 0;
+    let adStartTime = 0;
+    let adCheckInterval = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const autoRefId = urlParams.get('ref') || null;
@@ -203,7 +203,7 @@
                         coins: 0,
                         referral_count: 0,
                         daily_ad_count: 0,
-                        total_ads_watched: 0, // Tracks total ads watched for Firebase admin view
+                        total_ads_watched: 0,
                         last_ad_date: "",
                         last_ad_timestamp: 0,
                         created_at: new Date().toISOString()
@@ -258,13 +258,13 @@
                     userId = val.user_id;
                 }
 
-                userCoins = val.coins || 0;
+                userCoins = Number(val.coins) || 0;
                 myReferrerId = val.referred_by || null;
-                let refCount = val.referral_count || 0;
+                let refCount = Number(val.referral_count) || 0;
 
-                todayAdsWatched = (val.last_ad_date === todayDate) ? (val.daily_ad_count || 0) : 0;
-                totalAdsWatched = val.total_ads_watched || 0;
-                lastAdTimestamp = val.last_ad_timestamp || 0;
+                todayAdsWatched = (val.last_ad_date === todayDate) ? (Number(val.daily_ad_count) || 0) : 0;
+                totalAdsWatched = Number(val.total_ads_watched) || 0;
+                lastAdTimestamp = Number(val.last_ad_timestamp) || 0;
 
                 updateBalanceUI();
                 document.getElementById('displayUserId').innerText = userId;
@@ -332,32 +332,45 @@
         }
 
         isWatchingAd = true;
-        timeSpentOnAd = 0;
+        adStartTime = Date.now();
         let btn = document.getElementById('watchBtn');
         btn.disabled = true;
         btn.innerText = `Viewing Ad... Keep tab open!`;
 
         window.open(adLink, '_blank');
 
-        adTimer = setInterval(() => {
-            timeSpentOnAd++;
-            let remaining = MANDATORY_AD_TIME - timeSpentOnAd;
-            
+        // Timer check every second to track tab focus and time
+        let secondsPassed = 0;
+        if (adCheckInterval) clearInterval(adCheckInterval);
+
+        adCheckInterval = setInterval(() => {
+            if (!isWatchingAd) {
+                clearInterval(adCheckInterval);
+                return;
+            }
+
+            secondsPassed++;
+            let remaining = MANDATORY_AD_TIME - secondsPassed;
+
             if (remaining > 0) {
                 btn.innerText = `Watching Ad (${remaining}s remaining)...`;
             } else {
-                clearInterval(adTimer);
+                clearInterval(adCheckInterval);
                 isWatchingAd = false;
                 rewardUserForAd();
             }
         }, 1000);
     }
 
+    // Robust Tab Switch / Visibility Detection
     document.addEventListener("visibilitychange", () => {
         if (document.hidden && isWatchingAd) {
-            if (timeSpentOnAd < MANDATORY_AD_TIME) {
-                clearInterval(adTimer);
+            let elapsedSeconds = Math.floor((Date.now() - adStartTime) / 1000);
+            
+            if (elapsedSeconds < MANDATORY_AD_TIME) {
+                if (adCheckInterval) clearInterval(adCheckInterval);
                 isWatchingAd = false;
+                
                 let btn = document.getElementById('watchBtn');
                 btn.disabled = false;
                 btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
@@ -381,7 +394,7 @@
         db.ref('users/' + phone).update({
             coins: userCoins,
             daily_ad_count: todayAdsWatched,
-            total_ads_watched: totalAdsWatched, // Updated in Firebase for admin view
+            total_ads_watched: totalAdsWatched,
             last_ad_date: todayDate,
             last_ad_timestamp: lastAdTimestamp
         }).then(() => {
@@ -392,12 +405,14 @@
                     if (refSnap.exists()) {
                         let refPhone = refSnap.val();
                         db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
-                            return (refCoins || 0) + 1;
+                            return (Number(refCoins) || 0) + 1;
                         });
                     }
                 });
             }
             checkCooldownStatus();
+        }).catch(err => {
+            alert("Error updating database: " + err.message);
         });
     }
 
@@ -440,5 +455,5 @@
 </script>
 
 </body>
-                                                         </html>
-                                                                                             
+    </html>
+    
