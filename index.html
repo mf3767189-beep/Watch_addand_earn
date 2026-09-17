@@ -24,7 +24,7 @@
         .profile-left { display: flex; align-items: center; gap: 12px; }
         .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #00a884; background: #0b141a; }
         .user-details { text-align: left; }
-        .user-phone { font-size: 14px; font-weight: bold; color: #e9edef; display: flex; align-items: center; gap: 5px; }
+        .user-id-title { font-size: 14px; font-weight: bold; color: #e9edef; display: flex; align-items: center; gap: 5px; }
         .user-badge { font-size: 10px; background: #008069; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: normal; }
         .status-online { font-size: 11px; color: #22c55e; }
 
@@ -44,6 +44,9 @@
         .link-text { color: #00a884; cursor: pointer; font-size: 13px; margin-top: 10px; display: inline-block; }
         
         .ref-box { background: #182229; padding: 10px; border-radius: 8px; font-size: 12px; color: #00a884; word-break: break-all; margin-top: 8px; border: 1px dashed #00a884; }
+        .ref-stat-box { background: #182229; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #202c33; display: flex; justify-content: space-around; align-items: center; }
+        .ref-stat-item { font-size: 13px; color: #e9edef; }
+        .ref-stat-item b { font-size: 16px; color: #ffd700; }
 
         .hidden { display: none; }
     </style>
@@ -61,7 +64,7 @@
         <h3 id="authTitle" style="color: #8696a0; margin-bottom: 15px; font-size: 15px;">Login to Your Account</h3>
         <input type="text" id="authPhone" placeholder="Mobile Number (e.g., 03001234567)">
         <input type="password" id="authPassword" placeholder="Password">
-        <input type="text" id="referredByInput" placeholder="Referral Phone Number (Optional)">
+        <input type="text" id="referredByInput" placeholder="Referral ID (Optional)">
         <button class="btn" id="authBtn" onclick="handleAuth()">Login</button>
         <p class="link-text" id="toggleAuth" onclick="toggleAuthMode()">Don't have an account? Sign Up</p>
     </div>
@@ -75,13 +78,13 @@
             <span class="brand-name">AdEarn Rewards</span>
         </div>
 
-        <!-- User Profile DP Header Bar -->
+        <!-- User Profile Header Bar -->
         <div class="user-profile-bar">
             <div class="profile-left">
                 <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AdUser" id="userDp" class="user-avatar" alt="DP">
                 <div class="user-details">
-                    <div class="user-phone">
-                        <span id="displayPhone"></span>
+                    <div class="user-id-title">
+                        🆔 <span id="displayUserId">ID-000000</span>
                         <span class="user-badge">PRO</span>
                     </div>
                     <span class="status-online">🟢 Active Member</span>
@@ -111,12 +114,17 @@
             <button class="btn" id="watchBtn" onclick="startAdTask()">Watch Ad & Earn 🪙</button>
         </div>
 
-        <!-- 🤝 Referral Program Card (10% Commission) -->
+        <!-- 🤝 Referral Program Card -->
         <div class="card">
             <h3 style="color: #ffd700;">🤝 Invite & Earn 10% Lifetime</h3>
             <p style="font-size: 12px; color: #8696a0; margin-top: 5px;">
-                اگر آپ کا فرینڈ 10 Coins کمائے گا تو آپ کو **1 Coin (10%)** بالکل فری ملیں گے!
+                اگر آپ کا فرینڈ 10 Coins کمائے گا تو آپ کو <b>1 Coin (10%)</b> بالکل فری ملیں گے!
             </p>
+            
+            <div class="ref-stat-box">
+                <div class="ref-stat-item">👥 Total Invited Users: <b id="totalRefUsers">0</b></div>
+            </div>
+
             <div class="ref-box" id="refLink">Generating link...</div>
             <button class="btn btn-copy" onclick="copyReferralLink()">Copy Referral Link 📋</button>
         </div>
@@ -168,10 +176,23 @@
 
     let isLoginMode = true;
     let currentUserPhone = localStorage.getItem('loggedInUser');
+    let currentUserId = null;
     let userCoins = 0;
     let todayAdsWatched = 0;
     let lastAdTimestamp = 0;
-    let myReferrer = null;
+    let myReferrerId = null;
+
+    // Get or Create Unique Device ID (One Account per Phone Rule)
+    function getDeviceId() {
+        let deviceId = localStorage.getItem('app_device_uuid');
+        if (!deviceId) {
+            deviceId = 'DEV-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now();
+            localStorage.setItem('app_device_uuid', deviceId);
+        }
+        return deviceId;
+    }
+
+    const currentDeviceId = getDeviceId();
 
     // Check URL parameters for Referral
     const urlParams = new URLSearchParams(window.location.search);
@@ -198,13 +219,16 @@
         }
     }
 
-    // Default view setup
     document.getElementById('referredByInput').classList.add('hidden');
+
+    function generateUniqueId() {
+        return 'ID-' + Math.floor(100000 + Math.random() * 900000);
+    }
 
     function handleAuth() {
         let phone = document.getElementById('authPhone').value.trim();
         let pass = document.getElementById('authPassword').value.trim();
-        let refBy = document.getElementById('referredByInput').value.trim();
+        let refById = document.getElementById('referredByInput').value.trim();
 
         if (!phone || !pass) {
             alert("Please fill all details!");
@@ -212,44 +236,81 @@
         }
 
         let userRef = database.ref('users/' + phone);
+        let deviceRef = database.ref('registered_devices/' + currentDeviceId);
 
         if (isLoginMode) {
             userRef.once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     let userData = snapshot.val();
                     if (userData.password === pass) {
+                        // Check if device matches
+                        if (userData.device_id && userData.device_id !== currentDeviceId) {
+                            alert("❌ Unauthorized! You can only access this account from your registered mobile device.");
+                            return;
+                        }
+
                         localStorage.setItem('loggedInUser', phone);
                         currentUserPhone = phone;
                         showDashboard();
                     } else {
-                        alert("Incorrect Password!");
+                        alert("❌ Incorrect Password!");
                     }
                 } else {
-                    alert("Account not found! Please Sign Up.");
+                    alert("❌ Account not found! Please Sign Up.");
                 }
             });
         } else {
-            userRef.once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    alert("Mobile number already registered!");
-                } else {
-                    let newUserObj = {
-                        password: pass,
-                        coins: 0,
-                        created_at: new Date().toISOString()
-                    };
-
-                    if (refBy && refBy !== phone) {
-                        newUserObj.referred_by = refBy;
-                    }
-
-                    userRef.set(newUserObj).then(() => {
-                        alert("Account created successfully!");
-                        localStorage.setItem('loggedInUser', phone);
-                        currentUserPhone = phone;
-                        showDashboard();
-                    });
+            // SIGN UP - CHECK STRICT ONE ACCOUNT PER DEVICE RULE
+            deviceRef.once('value', (deviceSnap) => {
+                if (deviceSnap.exists()) {
+                    alert("❌ ERROR: Only 1 account is allowed per device!\n\nThis phone already has a registered account. Creating multiple accounts is blocked.");
+                    return;
                 }
+
+                userRef.once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        alert("❌ Mobile number already registered!");
+                    } else {
+                        let newGeneratedId = generateUniqueId();
+                        
+                        let newUserObj = {
+                            user_id: newGeneratedId,
+                            password: pass,
+                            coins: 0,
+                            device_id: currentDeviceId,
+                            created_at: new Date().toISOString()
+                        };
+
+                        if (refById && refById !== newGeneratedId) {
+                            newUserObj.referred_by = refById;
+                        }
+
+                        // Save user & bind device ID
+                        userRef.set(newUserObj).then(() => {
+                            // Register Device to prevent multiple accounts
+                            deviceRef.set(phone);
+
+                            // Create ID Mapping in Database
+                            database.ref('id_map/' + newGeneratedId).set(phone);
+
+                            if (refById && refById !== newGeneratedId) {
+                                database.ref('id_map/' + refById).once('value', (refSnap) => {
+                                    if (refSnap.exists()) {
+                                        let refPhone = refSnap.val();
+                                        database.ref('users/' + refPhone + '/referral_count').transaction((count) => {
+                                            return (count || 0) + 1;
+                                        });
+                                    }
+                                });
+                            }
+
+                            alert("✅ Account created successfully!");
+                            localStorage.setItem('loggedInUser', phone);
+                            currentUserPhone = phone;
+                            showDashboard();
+                        });
+                    }
+                });
             });
         }
     }
@@ -257,21 +318,24 @@
     function showDashboard() {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardScreen').classList.remove('hidden');
-        document.getElementById('displayPhone').innerText = currentUserPhone;
-
-        document.getElementById('userDp').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUserPhone}`;
-
-        // Set Referral Link
-        let currentUrl = window.location.href.split('?')[0];
-        let referralLink = `${currentUrl}?ref=${currentUserPhone}`;
-        document.getElementById('refLink').innerText = referralLink;
 
         let todayDate = new Date().toISOString().split('T')[0];
 
         database.ref('users/' + currentUserPhone).on('value', (snapshot) => {
             let val = snapshot.val() || {};
             userCoins = val.coins || 0;
-            myReferrer = val.referred_by || null;
+            currentUserId = val.user_id || "ID-000000";
+            myReferrerId = val.referred_by || null;
+            let refCount = val.referral_count || 0;
+
+            document.getElementById('displayUserId').innerText = currentUserId;
+            document.getElementById('userDp').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUserId}`;
+
+            let currentUrl = window.location.href.split('?')[0];
+            let referralLink = `${currentUrl}?ref=${currentUserId}`;
+            document.getElementById('refLink').innerText = referralLink;
+
+            document.getElementById('totalRefUsers').innerText = refCount;
             
             if (val.last_ad_date === todayDate) {
                 todayAdsWatched = val.daily_ad_count || 0;
@@ -362,59 +426,20 @@
                 let newCoins = userCoins + 10;
                 let newAdCount = todayAdsWatched + 1;
 
-                // Update User's Coins
                 database.ref('users/' + currentUserPhone).update({
                     coins: newCoins,
                     daily_ad_count: newAdCount,
                     last_ad_date: todayDate,
                     last_ad_timestamp: Date.now()
                 }).then(() => {
-                    // 💰 10% Commission to Referrer (1 Coin)
-                    if (myReferrer) {
-                        database.ref('users/' + myReferrer + '/coins').transaction((currentReferrerCoins) => {
-                            return (currentReferrerCoins || 0) + 1; // Gives 1 Coin (10% of 10 Coins)
+                    if (myReferrerId) {
+                        database.ref('id_map/' + myReferrerId).once('value', (refSnap) => {
+                            if (refSnap.exists()) {
+                                let refPhone = refSnap.val();
+                                database.ref('users/' + refPhone + '/coins').transaction((currentReferrerCoins) => {
+                                    return (currentReferrerCoins || 0) + 1;
+                                });
+                            }
                         });
                     }
-                    alert("Awesome! +10 Coins added.");
-                });
-            }
-        }, 1000);
-    }
-
-    function withdraw() {
-        let method = document.getElementById('method').value;
-        let acc = document.getElementById('accountNo').value.trim();
-
-        if (!acc) {
-            alert("Please enter account details!");
-            return;
-        }
-
-        if (userCoins < 30000) {
-            alert("Minimum withdraw limit is $5.00 (30,000 Coins)!");
-            return;
-        }
-
-        let remainingCoins = userCoins - 30000;
-        database.ref('users/' + currentUserPhone + '/coins').set(remainingCoins);
-
-        let msg = `Hello Admin, I requested a Withdrawal!\n\n📱 My Phone: ${currentUserPhone}\n💳 Payment Method: ${method}\n🏦 Account Number: ${acc}\n💵 Amount: $5.00 USD (30,000 Coins)`;
-        
-        alert("Withdrawal request created! Click OK to send details directly to Admin on Telegram.");
-        window.open(`https://t.me/${telegramSupportUsername}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function openSupport() {
-        let msg = `Hello Admin, I need help regarding my account (${currentUserPhone})`;
-        window.open(`https://t.me/${telegramSupportUsername}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function logout() {
-        localStorage.removeItem('loggedInUser');
-        location.reload();
-    }
-</script>
-
-</body>
-                </html>
-            
+                    alert("Awesome! +10 Coins a
