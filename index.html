@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdEarn Rewards - Watch Ads & Earn Money</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0b141a; color: #e9edef; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .container { width: 100%; max-width: 400px; }
+        .card { background: #111b21; padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid #202c33; text-align: center; }
+        
+        /* Top Brand Header */
+        .brand-header { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .brand-logo { width: 35px; height: 35px; border-radius: 8px; }
+        .brand-name { font-size: 20px; font-weight: bold; color: #00a884; letter-spacing: 0.5px; }
+
+        /* User Profile DP Bar */
+        .user-profile-bar { background: #182229; padding: 12px 16px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border: 1px solid #202c33; }
+        .profile-left { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #00a884; background: #0b141a; }
+        .user-details { text-align: left; }
+        .user-phone { font-size: 14px; font-weight: bold; color: #e9edef; display: flex; align-items: center; gap: 5px; }
+        .user-badge { font-size: 10px; background: #008069; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: normal; }
+        .status-online { font-size: 11px; color: #22c55e; }
+
+        /* Balance Wallet */
+        .wallet { background: #008069; color: white; padding: 18px; border-radius: 12px; margin-bottom: 12px; }
+        .wallet h2 { font-size: 30px; margin-top: 5px; color: #ffd700; }
+        .wallet h3 { font-size: 18px; color: #bbf7d0; margin-top: 3px; }
+        
+        /* UI Buttons */
+        .btn { background: #00a884; color: #111b21; border: none; padding: 12px; width: 100%; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 8px; }
+        .btn-withdraw { background: #2563eb; color: white; }
+        .btn-support { background: #0088cc; color: white; }
+        .btn:disabled { background: #2a3942; color: #8696a0; cursor: not-allowed; }
+
+        input, select { width: 100%; padding: 11px; margin: 8px 0; border: 1px solid #2a3942; border-radius: 8px; background: #111b21; color: #fff; font-size: 14px; outline: none; }
+        .link-text { color: #00a884; cursor: pointer; font-size: 13px; margin-top: 10px; display: inline-block; }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 1. AUTH SCREEN (LOGIN / SIGNUP) -->
+    <div id="authScreen" class="card">
+        <div class="brand-header">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="brand-logo" alt="Logo">
+            <span class="brand-name">AdEarn Rewards</span>
+        </div>
+        <h3 id="authTitle" style="color: #8696a0; margin-bottom: 15px; font-size: 15px;">Login to Your Account</h3>
+        <input type="text" id="authPhone" placeholder="Mobile Number (e.g., 03001234567)">
+        <input type="password" id="authPassword" placeholder="Password">
+        <button class="btn" id="authBtn" onclick="handleAuth()">Login</button>
+        <p class="link-text" id="toggleAuth" onclick="toggleAuthMode()">Don't have an account? Sign Up</p>
+    </div>
+
+    <!-- 2. MAIN DASHBOARD -->
+    <div id="dashboardScreen" class="hidden">
+        
+        <!-- Top App Brand Header -->
+        <div class="brand-header">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="brand-logo" alt="Logo">
+            <span class="brand-name">AdEarn Rewards</span>
+        </div>
+
+        <!-- User Profile DP Header Bar -->
+        <div class="user-profile-bar">
+            <div class="profile-left">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AdUser" id="userDp" class="user-avatar" alt="DP">
+                <div class="user-details">
+                    <div class="user-phone">
+                        <span id="displayPhone"></span>
+                        <span class="user-badge">PRO</span>
+                    </div>
+                    <span class="status-online">🟢 Active Member</span>
+                </div>
+            </div>
+            <button onclick="logout()" style="background: #202c33; border: none; color: #ef4444; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">Logout 🚪</button>
+        </div>
+
+        <!-- Wallet Card -->
+        <div class="card">
+            <div class="wallet">
+                <p>Your Balance</p>
+                <h2>🪙 <span id="coins">0</span> Coins</h2>
+                <h3>💵 $<span id="dollars">0.00</span> USD</h3>
+            </div>
+            <div style="font-size: 12px; color: #8696a0; line-height: 1.5;">
+                ⚡ <b>1 Ad Watch = 10 Coins</b> <br>
+                🎯 <b>Minimum Withdraw = 30,000 Coins ($5.00)</b>
+            </div>
+        </div>
+
+        <!-- Task Card -->
+        <div class="card">
+            <h3 style="color: #00a884; margin-bottom: 10px;">Daily Ad Tasks</h3>
+            <p style="font-size: 12px; color: #8696a0; margin-bottom: 12px;">Watch ad for 15 seconds to earn +10 Coins</p>
+            <button class="btn" id="watchBtn" onclick="startAdTask()">Watch Ad & Earn 🪙</button>
+        </div>
+
+        <!-- Withdraw Card -->
+        <div class="card">
+            <h3 style="color: #00a884;">Withdraw Rewards</h3>
+            <select id="method">
+                <option value="Binance Pay ID (USDT)">Binance Pay ID (USDT)</option>
+                <option value="Easypaisa (PKR)">Easypaisa (Rs. 1,400)</option>
+                <option value="JazzCash (PKR)">JazzCash (Rs. 1,400)</option>
+            </select>
+            <input type="text" id="accountNo" placeholder="Binance Pay ID / Account Number">
+            <button class="btn btn-withdraw" onclick="withdraw()">Request $5.00 Withdraw 🚀</button>
+        </div>
+
+        <!-- Support Card -->
+        <div class="card">
+            <h3 style="color: #0088cc;">🎧 Need Help or Support?</h3>
+            <p style="font-size: 12px; color: #8696a0; margin: 8px 0;">اگر آپ کو کوئی مسئلہ آرہا ہے تو ڈائریکٹ ہماری ٹیم سے رابطہ کریں۔</p>
+            <button class="btn btn-support" onclick="openSupport()">Contact Support on Telegram 💬</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ✅ Updated Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
+        authDomain: "addearn-8e4b6.firebaseapp.com",
+        databaseURL: "https://addearn-8e4b6-default-rtdb.firebaseio.com",
+        projectId: "addearn-8e4b6",
+        storageBucket: "addearn-8e4b6.firebasestorage.app",
+        messagingSenderId: "156218824451",
+        appId: "1:156218824451:web:840c8ea2afeadb32a6bb36",
+        measurementId: "G-WPR4D5571P"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const telegramSupportUsername = "Ali69291"; 
+    const adsterraLink = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
+
+    const DAILY_AD_LIMIT = 20;
+    const COOLDOWN_TIME = 30;
+    const MANDATORY_AD_TIME = 15;
+
+    let isLoginMode = true;
+    let currentUserPhone = localStorage.getItem('loggedInUser');
+    let userCoins = 0;
+    let todayAdsWatched = 0;
+    let lastAdTimestamp = 0;
+
+    if (currentUserPhone) {
+        showDashboard();
+    }
+
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('authTitle').innerText = isLoginMode ? "Login to Your Account" : "Create New Account";
+        document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Sign Up";
+        document.getElementById('toggleAuth').innerText = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
+    }
+
+    function handleAuth() {
+        let phone = document.getElementById('authPhone').value.trim();
+        let pass = document.getElementById('authPassword').value.trim();
+
+        if (!phone || !pass) {
+            alert("Please fill all details!");
+            return;
+        }
+
+        let userRef = database.ref('users/' + phone);
+
+        if (isLoginMode) {
+            userRef.once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    let userData = snapshot.val();
+                    if (userData.password === pass) {
+                        localStorage.setItem('loggedInUser', phone);
+                        currentUserPhone = phone;
+                        showDashboard();
+                    } else {
+                        alert("Incorrect Password!");
+                    }
+                } else {
+                    alert("Account not found! Please Sign Up.");
+                }
+            });
+        } else {
+            userRef.once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    alert("Mobile number already registered!");
+                } else {
+                    userRef.set({
+                        password: pass,
+                        coins: 0,
+                        created_at: new Date().toISOString()
+                    }).then(() => {
+                        alert("Account created successfully!");
+                        localStorage.setItem('loggedInUser', phone);
+                        currentUserPhone = phone;
+                        showDashboard();
+                    });
+                }
+            });
+        }
+    }
+
+    function showDashboard() {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardScreen').classList.remove('hidden');
+        document.getElementById('displayPhone').innerText = currentUserPhone;
+
+        document.getElementById('userDp').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUserPhone}`;
+
+        let todayDate = new Date().toISOString().split('T')[0];
+
+        database.ref('users/' + currentUserPhone).on('value', (snapshot) => {
+            let val = snapshot.val() || {};
+            userCoins = val.coins || 0;
+            
+            if (val.last_ad_date === todayDate) {
+                todayAdsWatched = val.daily_ad_count || 0;
+            } else {
+                todayAdsWatched = 0;
+            }
+
+            lastAdTimestamp = val.last_ad_timestamp || 0;
+
+            updateBalanceDisplay();
+            checkCooldownStatus();
+        });
+    }
+
+    function updateBalanceDisplay() {
+        document.getElementById('coins').innerText = userCoins;
+        let dollars = (userCoins * (5 / 30000)).toFixed(2);
+        document.getElementById('dollars').innerText = dollars;
+    }
+
+    function checkCooldownStatus() {
+        let btn = document.getElementById('watchBtn');
+        let currentTime = Date.now();
+        let timePassed = Math.floor((currentTime - lastAdTimestamp) / 1000);
+
+        if (todayAdsWatched >= DAILY_AD_LIMIT) {
+            btn.disabled = true;
+            btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+            return;
+        }
+
+        if (timePassed < COOLDOWN_TIME) {
+            let remaining = COOLDOWN_TIME - timePassed;
+            btn.disabled = true;
+            btn.innerText = `Wait (${remaining}s)...`;
+            
+            let timer = setInterval(() => {
+                remaining--;
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.innerText = `Watch Ad (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                } else {
+                    btn.innerText = `Wait (${remaining}s)...`;
+                }
+            }, 1000);
+        } else {
+            btn.disabled = false;
+            btn.innerText = `Watch Ad (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+        }
+    }
+
+    function startAdTask() {
+        let btn = document.getElementById('watchBtn');
+        let currentTime = Date.now();
+        let timePassed = Math.floor((currentTime - lastAdTimestamp) / 1000);
+
+        if (todayAdsWatched >= DAILY_AD_LIMIT) {
+            alert("Daily 20 Ads limit reached!");
+            return;
+        }
+
+        if (timePassed < COOLDOWN_TIME) {
+            alert(`Please wait ${COOLDOWN_TIME - timePassed} seconds.`);
+            return;
+        }
+
+        window.open(adsterraLink, '_blank');
+        
+        btn.disabled = true;
+        let timer = MANDATORY_AD_TIME;
+        btn.innerText = `Watching Ad... (${timer}s)`;
+
+        let interval = setInterval(() => {
+            timer--;
+            btn.innerText = `Watching Ad... (${timer}s)`;
+
+            if (timer <= 0) {
+                clearInterval(interval);
+
+                let todayDate = new Date().toISOString().split('T')[0];
+                let newCoins = userCoins + 10;
+                let newAdCount = todayAdsWatched + 1;
+
+                database.ref('users/' + currentUserPhone).update({
+                    coins: newCoins,
+                    daily_ad_count: newAdCount,
+                    last_ad_date: todayDate,
+                    last_ad_timestamp: Date.now()
+                }).then(() => {
+                    alert("Awesome! +10 Coins added.");
+                });
+            }
+        }, 1000);
+    }
+
+    function withdraw() {
+        let method = document.getElementById('method').value;
+        let acc = document.getElementById('accountNo').value.trim();
+
+        if (!acc) {
+            alert("Please enter account details!");
+            return;
+        }
+
+        if (userCoins < 30000) {
+            alert("Minimum withdraw limit is $5.00 (30,000 Coins)!");
+            return;
+        }
+
+        let remainingCoins = userCoins - 30000;
+        database.ref('users/' + currentUserPhone + '/coins').set(remainingCoins);
+
+        let msg = `Hello Admin, I requested a Withdrawal!\n\n📱 My Phone: ${currentUserPhone}\n💳 Payment Method: ${method}\n🏦 Account Number: ${acc}\n💵 Amount: $5.00 USD (30,000 Coins)`;
+        
+        alert("Withdrawal request created! Click OK to send details directly to Admin on Telegram.");
+        window.open(`https://t.me/${telegramSupportUsername}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function openSupport() {
+        let msg = `Hello Admin, I need help regarding my account (${currentUserPhone})`;
+        window.open(`https://t.me/${telegramSupportUsername}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function logout() {
+        localStorage.removeItem('loggedInUser');
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
