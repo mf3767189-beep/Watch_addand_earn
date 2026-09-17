@@ -65,16 +65,16 @@
                 <h3>💵 $<span id="dollars">0.00</span> USD</h3>
             </div>
             <div style="font-size: 12px; color: #8696a0; line-height: 1.5;">
-                ⚡ 1 Ad Watch = 10 Coins <br>
+                ⚡ 1 Ad Watch = 10 Coins (Max 25 Ads/Day) <br>
                 🤝 Referral Bonus = 10% Commission <br>
                 🎯 Min Withdraw = 30,000 Coins ($5.00)
             </div>
         </div>
 
         <div class="card">
-            <h3 style="color: #00a884; margin-bottom: 10px;">Ad Task</h3>
-            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Stay on ad page for 15 seconds to earn.</p>
-            <button class="btn" id="watchBtn" onclick="startAd()">Watch Ad & Earn 🪙</button>
+            <h3 style="color: #00a884; margin-bottom: 10px;">Daily Ad Tasks</h3>
+            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Watch ad for 15 seconds to earn +10 Coins.</p>
+            <button class="btn" id="watchBtn" onclick="startAdTask()">Watch Ad & Earn 🪙</button>
         </div>
 
         <!-- REFERRAL SYSTEM CARD -->
@@ -111,7 +111,6 @@
 </div>
 
 <script>
-    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
         authDomain: "addearn-8e4b6.firebaseapp.com",
@@ -132,11 +131,18 @@
     let myReferrerId = null;
 
     const adLink = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
-    let isWatching = false;
-    let adTimeLeft = 15;
-    let adInterval = null;
+    
+    const DAILY_AD_LIMIT = 25;
+    const COOLDOWN_TIME = 30; // 30 seconds wait
+    const MANDATORY_AD_TIME = 15; // 15 seconds stay
 
-    // URL se referral ID check karna (agar koi kisi ke link se aaye)
+    let todayAdsWatched = 0;
+    let totalAdsWatched = 0;
+    let lastAdTimestamp = 0;
+    let isWatchingAd = false;
+    let adTimer = null;
+    let timeSpentOnAd = 0;
+
     const urlParams = new URLSearchParams(window.location.search);
     const autoRefId = urlParams.get('ref') || null;
 
@@ -155,7 +161,6 @@
         return 'ID-' + Math.floor(100000 + Math.random() * 900000);
     }
 
-    // Authentication System with Referral Support
     function processAuth() {
         let phoneInput = document.getElementById('authPhone').value.trim();
         let passInput = document.getElementById('authPassword').value.trim();
@@ -175,7 +180,6 @@
 
         userRef.once('value').then(snapshot => {
             if (isLogin) {
-                // LOGIN
                 if (snapshot.exists()) {
                     let userData = snapshot.val();
                     if (userData.password === passInput) {
@@ -188,7 +192,6 @@
                     alert("❌ Account not found! Please Sign Up first.");
                 }
             } else {
-                // SIGN UP
                 if (snapshot.exists()) {
                     alert("❌ This phone number is already registered! Please Login.");
                 } else {
@@ -199,19 +202,20 @@
                         phone: cleanPhone,
                         coins: 0,
                         referral_count: 0,
+                        daily_ad_count: 0,
+                        total_ads_watched: 0, // Tracks total ads watched for Firebase admin view
+                        last_ad_date: "",
+                        last_ad_timestamp: 0,
                         created_at: new Date().toISOString()
                     };
 
-                    // Agar referral link se aaya hai to referrer save karo
                     if (autoRefId) {
                         newUserData.referred_by = autoRefId;
                     }
 
                     userRef.set(newUserData).then(() => {
-                        // ID mapping save karna taake referral count update ho sake
                         db.ref('id_map/' + newGeneratedId).set(cleanPhone);
 
-                        // Agar koi referrer tha to uska count barhao
                         if (autoRefId) {
                             db.ref('id_map/' + autoRefId).once('value', refSnap => {
                                 if (refSnap.exists()) {
@@ -240,10 +244,11 @@
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardScreen').classList.remove('hidden');
 
+        let todayDate = new Date().toISOString().split('T')[0];
+
         db.ref('users/' + phone).on('value', snapshot => {
             let val = snapshot.val();
             if (val) {
-                // Agar purانے account mein user_id na ho to generate kar do
                 if (!val.user_id) {
                     let newGenId = generateUniqueId();
                     db.ref('users/' + phone).update({ user_id: newGenId, referral_count: 0 });
@@ -257,15 +262,142 @@
                 myReferrerId = val.referred_by || null;
                 let refCount = val.referral_count || 0;
 
+                todayAdsWatched = (val.last_ad_date === todayDate) ? (val.daily_ad_count || 0) : 0;
+                totalAdsWatched = val.total_ads_watched || 0;
+                lastAdTimestamp = val.last_ad_timestamp || 0;
+
+                updateBalanceUI();
                 document.getElementById('displayUserId').innerText = userId;
-                document.getElementById('coins').innerText = userCoins;
-                document.getElementById('dollars').innerText = (userCoins * (5 / 30000)).toFixed(2);
                 document.getElementById('totalRefUsers').innerText = refCount;
 
-                // Referral Link generate karna
                 let currentCleanUrl = window.location.href.split('?')[0];
                 document.getElementById('refLink').innerText = `${currentCleanUrl}?ref=${userId}`;
+
+                if (!isWatchingAd) {
+                    checkCooldownStatus();
+                }
             }
+        });
+    }
+
+    function updateBalanceUI() {
+        document.getElementById('coins').innerText = userCoins;
+        document.getElementById('dollars').innerText = (userCoins * (5 / 30000)).toFixed(2);
+    }
+
+    function checkCooldownStatus() {
+        let btn = document.getElementById('watchBtn');
+        let currentTime = Date.now();
+        let timePassed = Math.floor((currentTime - lastAdTimestamp) / 1000);
+
+        if (todayAdsWatched >= DAILY_AD_LIMIT) {
+            btn.disabled = true;
+            btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+            return;
+        }
+
+        if (timePassed < COOLDOWN_TIME) {
+            let remaining = COOLDOWN_TIME - timePassed;
+            btn.disabled = true;
+            btn.innerText = `Wait (${remaining}s)...`;
+            
+            let timer = setInterval(() => {
+                remaining--;
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                } else {
+                    btn.innerText = `Wait (${remaining}s)...`;
+                }
+            }, 1000);
+        } else {
+            btn.disabled = false;
+            btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+        }
+    }
+
+    function startAdTask() {
+        let currentTime = Date.now();
+        let timePassed = Math.floor((currentTime - lastAdTimestamp) / 1000);
+
+        if (todayAdsWatched >= DAILY_AD_LIMIT) {
+            alert("Daily 25 Ads limit reached!");
+            return;
+        }
+
+        if (timePassed < COOLDOWN_TIME) {
+            alert(`Please wait ${COOLDOWN_TIME - timePassed} seconds before watching the next ad.`);
+            return;
+        }
+
+        isWatchingAd = true;
+        timeSpentOnAd = 0;
+        let btn = document.getElementById('watchBtn');
+        btn.disabled = true;
+        btn.innerText = `Viewing Ad... Keep tab open!`;
+
+        window.open(adLink, '_blank');
+
+        adTimer = setInterval(() => {
+            timeSpentOnAd++;
+            let remaining = MANDATORY_AD_TIME - timeSpentOnAd;
+            
+            if (remaining > 0) {
+                btn.innerText = `Watching Ad (${remaining}s remaining)...`;
+            } else {
+                clearInterval(adTimer);
+                isWatchingAd = false;
+                rewardUserForAd();
+            }
+        }, 1000);
+    }
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden && isWatchingAd) {
+            if (timeSpentOnAd < MANDATORY_AD_TIME) {
+                clearInterval(adTimer);
+                isWatchingAd = false;
+                let btn = document.getElementById('watchBtn');
+                btn.disabled = false;
+                btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                
+                alert("❌ ایڈ مکمل نہیں ہوا!\nآپ نے 15 سیکنڈ پورے نہیں دیکھے، اس لیے آپ کا ایڈ کاؤنٹ یا کوائنز ایڈ نہیں ہوئے۔ برائے مہربانی ایڈ کو دوبارہ پورا دیکھیں۔");
+            }
+        }
+    });
+
+    function rewardUserForAd() {
+        let todayDate = new Date().toISOString().split('T')[0];
+        
+        userCoins += 10;
+        todayAdsWatched += 1;
+        totalAdsWatched += 1;
+        lastAdTimestamp = Date.now();
+        updateBalanceUI();
+
+        let phone = localStorage.getItem('activeUser');
+
+        db.ref('users/' + phone).update({
+            coins: userCoins,
+            daily_ad_count: todayAdsWatched,
+            total_ads_watched: totalAdsWatched, // Updated in Firebase for admin view
+            last_ad_date: todayDate,
+            last_ad_timestamp: lastAdTimestamp
+        }).then(() => {
+            alert("🎉 Success! +10 Coins added.");
+            
+            if (myReferrerId) {
+                db.ref('id_map/' + myReferrerId).once('value', refSnap => {
+                    if (refSnap.exists()) {
+                        let refPhone = refSnap.val();
+                        db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
+                            return (refCoins || 0) + 1;
+                        });
+                    }
+                });
+            }
+            checkCooldownStatus();
         });
     }
 
@@ -274,61 +406,6 @@
         navigator.clipboard.writeText(linkText);
         alert("📋 Referral Link copied to clipboard!");
     }
-
-    function startAd() {
-        let btn = document.getElementById('watchBtn');
-        isWatching = true;
-        adTimeLeft = 15;
-        btn.disabled = true;
-
-        window.open(adLink, '_blank');
-
-        adInterval = setInterval(() => {
-            adTimeLeft--;
-            if (adTimeLeft > 0) {
-                btn.innerText = `Watching... (${adTimeLeft}s)`;
-            } else {
-                clearInterval(adInterval);
-                isWatching = false;
-                btn.disabled = false;
-                btn.innerText = "Watch Ad & Earn 🪙";
-                
-                let phone = localStorage.getItem('activeUser');
-                
-                // Khud ke coins barhana (+10)
-                db.ref('users/' + phone + '/coins').transaction(currentCoins => {
-                    return (currentCoins || 0) + 10;
-                }, (error, committed) => {
-                    if (committed) {
-                        alert("🎉 Success! +10 Coins added.");
-                        
-                        // Agar iska koi referrer hai to usko 10% (1 coin) commission bhejo
-                        if (myReferrerId) {
-                            db.ref('id_map/' + myReferrerId).once('value', refSnap => {
-                                if (refSnap.exists()) {
-                                    let refPhone = refSnap.val();
-                                    db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
-                                        return (refCoins || 0) + 1; // 1 Coin commission
-                                    });
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        }, 1000);
-    }
-
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden && isWatching) {
-            clearInterval(adInterval);
-            isWatching = false;
-            let btn = document.getElementById('watchBtn');
-            btn.disabled = false;
-            btn.innerText = "Watch Ad & Earn 🪙";
-            alert("❌ Task Failed! You left the ad page before 15 seconds.");
-        }
-    });
 
     function withdrawCoins() {
         let method = document.getElementById('method').value;
@@ -344,7 +421,9 @@
         }
 
         let phone = localStorage.getItem('activeUser');
-        db.ref('users/' + phone + '/coins').set(userCoins - 30000);
+        userCoins -= 30000;
+        updateBalanceUI();
+        db.ref('users/' + phone + '/coins').set(userCoins);
         
         let msg = `Withdraw Request:\n🆔 ID: ${userId}\n💳 Method: ${method}\n🏦 Acc: ${acc}`;
         window.open(`https://t.me/Ali69291?text=${encodeURIComponent(msg)}`, '_blank');
@@ -361,5 +440,5 @@
 </script>
 
 </body>
-    </html>
-    
+                                                         </html>
+                                                                                             
