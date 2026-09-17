@@ -37,11 +37,14 @@
         .btn { background: #00a884; color: #111b21; border: none; padding: 12px; width: 100%; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 8px; }
         .btn-withdraw { background: #2563eb; color: white; }
         .btn-support { background: #0088cc; color: white; }
+        .btn-copy { background: #eab308; color: #111b21; margin-top: 10px; }
         .btn:disabled { background: #2a3942; color: #8696a0; cursor: not-allowed; }
 
         input, select { width: 100%; padding: 11px; margin: 8px 0; border: 1px solid #2a3942; border-radius: 8px; background: #111b21; color: #fff; font-size: 14px; outline: none; }
         .link-text { color: #00a884; cursor: pointer; font-size: 13px; margin-top: 10px; display: inline-block; }
         
+        .ref-box { background: #182229; padding: 10px; border-radius: 8px; font-size: 12px; color: #00a884; word-break: break-all; margin-top: 8px; border: 1px dashed #00a884; }
+
         .hidden { display: none; }
     </style>
 </head>
@@ -58,6 +61,7 @@
         <h3 id="authTitle" style="color: #8696a0; margin-bottom: 15px; font-size: 15px;">Login to Your Account</h3>
         <input type="text" id="authPhone" placeholder="Mobile Number (e.g., 03001234567)">
         <input type="password" id="authPassword" placeholder="Password">
+        <input type="text" id="referredByInput" placeholder="Referral Phone Number (Optional)">
         <button class="btn" id="authBtn" onclick="handleAuth()">Login</button>
         <p class="link-text" id="toggleAuth" onclick="toggleAuthMode()">Don't have an account? Sign Up</p>
     </div>
@@ -95,6 +99,7 @@
             </div>
             <div style="font-size: 12px; color: #8696a0; line-height: 1.5;">
                 ⚡ <b>1 Ad Watch = 10 Coins</b> <br>
+                🤝 <b>Referral Bonus = 10% Commission (1 Coin per Ad)</b> <br>
                 🎯 <b>Minimum Withdraw = 30,000 Coins ($5.00)</b>
             </div>
         </div>
@@ -104,6 +109,16 @@
             <h3 style="color: #00a884; margin-bottom: 10px;">Daily Ad Tasks</h3>
             <p style="font-size: 12px; color: #8696a0; margin-bottom: 12px;">Watch ad for 15 seconds to earn +10 Coins</p>
             <button class="btn" id="watchBtn" onclick="startAdTask()">Watch Ad & Earn 🪙</button>
+        </div>
+
+        <!-- 🤝 Referral Program Card (10% Commission) -->
+        <div class="card">
+            <h3 style="color: #ffd700;">🤝 Invite & Earn 10% Lifetime</h3>
+            <p style="font-size: 12px; color: #8696a0; margin-top: 5px;">
+                اگر آپ کا فرینڈ 10 Coins کمائے گا تو آپ کو **1 Coin (10%)** بالکل فری ملیں گے!
+            </p>
+            <div class="ref-box" id="refLink">Generating link...</div>
+            <button class="btn btn-copy" onclick="copyReferralLink()">Copy Referral Link 📋</button>
         </div>
 
         <!-- Withdraw Card -->
@@ -129,7 +144,7 @@
 </div>
 
 <script>
-    // ✅ Updated Firebase Configuration
+    // ✅ Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
         authDomain: "addearn-8e4b6.firebaseapp.com",
@@ -156,6 +171,15 @@
     let userCoins = 0;
     let todayAdsWatched = 0;
     let lastAdTimestamp = 0;
+    let myReferrer = null;
+
+    // Check URL parameters for Referral
+    const urlParams = new URLSearchParams(window.location.search);
+    const refFromUrl = urlParams.get('ref');
+
+    if (refFromUrl) {
+        document.getElementById('referredByInput').value = refFromUrl;
+    }
 
     if (currentUserPhone) {
         showDashboard();
@@ -166,11 +190,21 @@
         document.getElementById('authTitle').innerText = isLoginMode ? "Login to Your Account" : "Create New Account";
         document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Sign Up";
         document.getElementById('toggleAuth').innerText = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
+        
+        if (isLoginMode) {
+            document.getElementById('referredByInput').classList.add('hidden');
+        } else {
+            document.getElementById('referredByInput').classList.remove('hidden');
+        }
     }
+
+    // Default view setup
+    document.getElementById('referredByInput').classList.add('hidden');
 
     function handleAuth() {
         let phone = document.getElementById('authPhone').value.trim();
         let pass = document.getElementById('authPassword').value.trim();
+        let refBy = document.getElementById('referredByInput').value.trim();
 
         if (!phone || !pass) {
             alert("Please fill all details!");
@@ -199,11 +233,17 @@
                 if (snapshot.exists()) {
                     alert("Mobile number already registered!");
                 } else {
-                    userRef.set({
+                    let newUserObj = {
                         password: pass,
                         coins: 0,
                         created_at: new Date().toISOString()
-                    }).then(() => {
+                    };
+
+                    if (refBy && refBy !== phone) {
+                        newUserObj.referred_by = refBy;
+                    }
+
+                    userRef.set(newUserObj).then(() => {
                         alert("Account created successfully!");
                         localStorage.setItem('loggedInUser', phone);
                         currentUserPhone = phone;
@@ -221,11 +261,17 @@
 
         document.getElementById('userDp').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUserPhone}`;
 
+        // Set Referral Link
+        let currentUrl = window.location.href.split('?')[0];
+        let referralLink = `${currentUrl}?ref=${currentUserPhone}`;
+        document.getElementById('refLink').innerText = referralLink;
+
         let todayDate = new Date().toISOString().split('T')[0];
 
         database.ref('users/' + currentUserPhone).on('value', (snapshot) => {
             let val = snapshot.val() || {};
             userCoins = val.coins || 0;
+            myReferrer = val.referred_by || null;
             
             if (val.last_ad_date === todayDate) {
                 todayAdsWatched = val.daily_ad_count || 0;
@@ -238,6 +284,12 @@
             updateBalanceDisplay();
             checkCooldownStatus();
         });
+    }
+
+    function copyReferralLink() {
+        let linkText = document.getElementById('refLink').innerText;
+        navigator.clipboard.writeText(linkText);
+        alert("Referral Link copied! Share with friends to earn 10% lifetime commission.");
     }
 
     function updateBalanceDisplay() {
@@ -310,12 +362,19 @@
                 let newCoins = userCoins + 10;
                 let newAdCount = todayAdsWatched + 1;
 
+                // Update User's Coins
                 database.ref('users/' + currentUserPhone).update({
                     coins: newCoins,
                     daily_ad_count: newAdCount,
                     last_ad_date: todayDate,
                     last_ad_timestamp: Date.now()
                 }).then(() => {
+                    // 💰 10% Commission to Referrer (1 Coin)
+                    if (myReferrer) {
+                        database.ref('users/' + myReferrer + '/coins').transaction((currentReferrerCoins) => {
+                            return (currentReferrerCoins || 0) + 1; // Gives 1 Coin (10% of 10 Coins)
+                        });
+                    }
                     alert("Awesome! +10 Coins added.");
                 });
             }
@@ -357,4 +416,5 @@
 </script>
 
 </body>
-</html>
+                </html>
+            
