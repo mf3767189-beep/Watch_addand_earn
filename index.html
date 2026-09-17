@@ -112,7 +112,7 @@
             <button class="btn" id="watchBtn" onclick="startAdTask()">Watch Ad & Earn 🪙</button>
         </div>
 
-        <!-- 🤝 Referral Program Card -->
+        <!-- Referral Program Card -->
         <div class="card">
             <h3 style="color: #ffd700;">🤝 Invite & Earn 10% Lifetime</h3>
             <p style="font-size: 12px; color: #8696a0; margin-top: 5px;">
@@ -202,6 +202,7 @@
         return 'ID-' + Math.floor(100000 + Math.random() * 900000);
     }
 
+    // 🔄 FIXED LOGIN & SIGNUP PROCESS
     function handleAuth() {
         let phone = document.getElementById('authPhone').value.trim();
         let pass = document.getElementById('authPassword').value.trim();
@@ -214,7 +215,7 @@
         let userRef = database.ref('users/' + phone);
 
         if (isLoginMode) {
-            userRef.once('value', (snapshot) => {
+            userRef.once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     let userData = snapshot.val();
                     if (userData.password === pass) {
@@ -227,9 +228,11 @@
                 } else {
                     alert("❌ Account not found! Please Sign Up.");
                 }
+            }).catch(err => {
+                alert("Login Error: " + err.message);
             });
         } else {
-            userRef.once('value', (snapshot) => {
+            userRef.once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     alert("❌ Mobile number already registered! Please Login.");
                 } else {
@@ -239,6 +242,7 @@
                         user_id: newGeneratedId,
                         password: pass,
                         coins: 0,
+                        is_verified_v2: true, // Mark verified
                         created_at: new Date().toISOString()
                     };
 
@@ -264,10 +268,10 @@
                         localStorage.setItem('loggedInUser', phone);
                         currentUserPhone = phone;
                         showDashboard();
-                    }).catch(err => {
-                        alert("Error: " + err.message);
                     });
                 }
+            }).catch(err => {
+                alert("Signup Error: " + err.message);
             });
         }
     }
@@ -281,6 +285,7 @@
         database.ref('users/' + currentUserPhone).on('value', (snapshot) => {
             let val = snapshot.val() || {};
             
+            // Auto generate ID if missing
             if (!val.user_id) {
                 let generatedNewId = generateUniqueId();
                 database.ref('users/' + currentUserPhone).update({ user_id: generatedNewId });
@@ -290,7 +295,17 @@
                 currentUserId = val.user_id;
             }
 
-            userCoins = val.coins || 0;
+            // 🚫 CLEAR FAKE COINS FOR UNVERIFIED OLD USERS
+            if (!val.is_verified_v2) {
+                database.ref('users/' + currentUserPhone).update({
+                    coins: 0,
+                    is_verified_v2: true
+                });
+                userCoins = 0;
+            } else {
+                userCoins = val.coins || 0;
+            }
+
             myReferrerId = val.referred_by || null;
             let refCount = val.referral_count || 0;
 
@@ -360,7 +375,7 @@
         }
     }
 
-    // 🔥 STRICT AD VERIFICATION SYSTEM
+    // 🔥 STRICT 15-SEC AD TRACKING SYSTEM
     function startAdTask() {
         let btn = document.getElementById('watchBtn');
         let currentTime = Date.now();
@@ -381,10 +396,10 @@
         btn.disabled = true;
         btn.innerText = `Viewing Ad... Keep tab open!`;
 
-        // Open Ad Tab
+        // Open Ad URL
         window.open(adsterraLink, '_blank');
 
-        // Start Strict Timer
+        // Start Countdown
         adTimer = setInterval(() => {
             timeSpentOnAd++;
             let remaining = MANDATORY_AD_TIME - timeSpentOnAd;
@@ -392,7 +407,6 @@
             if (remaining > 0) {
                 btn.innerText = `Watching Ad (${remaining}s remaining)...`;
             } else {
-                // Task Completed Successfully!
                 clearInterval(adTimer);
                 isWatchingAd = false;
                 rewardUser();
@@ -400,10 +414,9 @@
         }, 1000);
     }
 
-    // Detect if user leaves the tab early
+    // Cancel task if tab is closed or hidden early
     document.addEventListener("visibilitychange", function() {
         if (document.hidden && isWatchingAd) {
-            // User came back too early or switched tabs before 15s
             if (timeSpentOnAd < MANDATORY_AD_TIME) {
                 clearInterval(adTimer);
                 isWatchingAd = false;
@@ -452,13 +465,4 @@
         }
 
         if (userCoins < 30000) {
-            alert("Minimum withdraw limit is $5.00 (30,000 Coins)!");
-            return;
-        }
-
-        let remainingCoins = userCoins - 30000;
-        database.ref('users/' + currentUserPhone + '/coins').set(remainingCoins);
-
-        let msg = `Hello Admin, I requested a Withdrawal!\n\n🆔 User ID: ${currentUserId}\n💳 Payment Method: ${method}\n🏦 Account Number: ${acc}\n💵 Amount: $5.00 USD (30,000 Coins)`;
-        
-        alert("Withdrawal request created! C
+            alert("Mini
