@@ -133,22 +133,37 @@
     const adLink = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
     
     const DAILY_AD_LIMIT = 25;
-    const COOLDOWN_TIME = 30; // 30 seconds wait
-    const MANDATORY_AD_TIME = 15; // 15 seconds stay
+    const COOLDOWN_TIME = 30; 
+    const MANDATORY_AD_TIME = 15; 
 
     let todayAdsWatched = 0;
     let totalAdsWatched = 0;
     let lastAdTimestamp = 0;
-    let isWatchingAd = false;
-    let adStartTime = 0;
-    let adCheckInterval = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const autoRefId = urlParams.get('ref') || null;
 
-    if (currentUserPhone) {
-        loadDashboard(currentUserPhone);
-    }
+    // Check if returning from ad via localStorage flag
+    window.onload = function() {
+        let adStartedTime = localStorage.getItem('ad_started_timestamp');
+        if (adStartedTime) {
+            localStorage.removeItem('ad_started_timestamp');
+            let timeElapsed = Math.floor((Date.now() - Number(adStartedTime)) / 1000);
+            
+            if (timeElapsed < MANDATORY_AD_TIME) {
+                alert("❌ ایڈ مکمل نہیں ہوا!\nآپ نے صرف " + timeElapsed + " سیکنڈ دیکھے ہیں (کم از کم 15 سیکنڈ ضروری ہیں)۔ اس لیے کوائنز نہیں ملے۔");
+            } else {
+                // Successfully watched 15+ seconds
+                if (currentUserPhone) {
+                    grantAdRewardLocallyAndRemotely(currentUserPhone);
+                }
+            }
+        }
+
+        if (currentUserPhone) {
+            loadDashboard(currentUserPhone);
+        }
+    };
 
     function toggleMode() {
         isLogin = !isLogin;
@@ -184,6 +199,7 @@
                     let userData = snapshot.val();
                     if (userData.password === passInput) {
                         localStorage.setItem('activeUser', cleanPhone);
+                        currentUserPhone = cleanPhone;
                         loadDashboard(cleanPhone);
                     } else {
                         alert("❌ Incorrect Password!");
@@ -228,6 +244,7 @@
                         }
 
                         localStorage.setItem('activeUser', cleanPhone);
+                        currentUserPhone = cleanPhone;
                         alert("✅ Account created successfully!");
                         loadDashboard(cleanPhone);
                     }).catch(err => {
@@ -246,6 +263,7 @@
 
         let todayDate = new Date().toISOString().split('T')[0];
 
+        // Fetch once + listen for updates to ensure balance shows immediately
         db.ref('users/' + phone).on('value', snapshot => {
             let val = snapshot.val();
             if (val) {
@@ -273,9 +291,7 @@
                 let currentCleanUrl = window.location.href.split('?')[0];
                 document.getElementById('refLink').innerText = `${currentCleanUrl}?ref=${userId}`;
 
-                if (!isWatchingAd) {
-                    checkCooldownStatus();
-                }
+                checkCooldownStatus();
             }
         });
     }
@@ -331,88 +347,50 @@
             return;
         }
 
-        isWatchingAd = true;
-        adStartTime = Date.now();
-        let btn = document.getElementById('watchBtn');
-        btn.disabled = true;
-        btn.innerText = `Viewing Ad... Keep tab open!`;
+        // Save exact timestamp when ad was clicked
+        localStorage.setItem('ad_started_timestamp', Date.now().toString());
 
-        window.open(adLink, '_blank');
-
-        // Timer check every second to track tab focus and time
-        let secondsPassed = 0;
-        if (adCheckInterval) clearInterval(adCheckInterval);
-
-        adCheckInterval = setInterval(() => {
-            if (!isWatchingAd) {
-                clearInterval(adCheckInterval);
-                return;
-            }
-
-            secondsPassed++;
-            let remaining = MANDATORY_AD_TIME - secondsPassed;
-
-            if (remaining > 0) {
-                btn.innerText = `Watching Ad (${remaining}s remaining)...`;
-            } else {
-                clearInterval(adCheckInterval);
-                isWatchingAd = false;
-                rewardUserForAd();
-            }
-        }, 1000);
+        // Open ad link directly
+        window.location.href = adLink;
     }
 
-    // Robust Tab Switch / Visibility Detection
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden && isWatchingAd) {
-            let elapsedSeconds = Math.floor((Date.now() - adStartTime) / 1000);
-            
-            if (elapsedSeconds < MANDATORY_AD_TIME) {
-                if (adCheckInterval) clearInterval(adCheckInterval);
-                isWatchingAd = false;
-                
-                let btn = document.getElementById('watchBtn');
-                btn.disabled = false;
-                btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-                
-                alert("❌ ایڈ مکمل نہیں ہوا!\nآپ نے 15 سیکنڈ پورے نہیں دیکھے، اس لیے آپ کا ایڈ کاؤنٹ یا کوائنز ایڈ نہیں ہوئے۔ برائے مہربانی ایڈ کو دوبارہ پورا دیکھیں۔");
-            }
-        }
-    });
-
-    function rewardUserForAd() {
+    function grantAdRewardLocallyAndRemotely(phone) {
         let todayDate = new Date().toISOString().split('T')[0];
-        
-        userCoins += 10;
-        todayAdsWatched += 1;
-        totalAdsWatched += 1;
-        lastAdTimestamp = Date.now();
-        updateBalanceUI();
 
-        let phone = localStorage.getItem('activeUser');
+        db.ref('users/' + phone).once('value').then(snapshot => {
+            let val = snapshot.val();
+            if (val) {
+                let currentCoins = Number(val.coins) || 0;
+                let currentDailyAds = (val.last_ad_date === todayDate) ? (Number(val.daily_ad_count) || 0) : 0;
+                let currentTotalAds = Number(val.total_ads_watched) || 0;
 
-        db.ref('users/' + phone).update({
-            coins: userCoins,
-            daily_ad_count: todayAdsWatched,
-            total_ads_watched: totalAdsWatched,
-            last_ad_date: todayDate,
-            last_ad_timestamp: lastAdTimestamp
-        }).then(() => {
-            alert("🎉 Success! +10 Coins added.");
-            
-            if (myReferrerId) {
-                db.ref('id_map/' + myReferrerId).once('value', refSnap => {
-                    if (refSnap.exists()) {
-                        let refPhone = refSnap.val();
-                        db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
-                            return (Number(refCoins) || 0) + 1;
+                currentCoins += 10;
+                currentDailyAds += 1;
+                currentTotalAds += 1;
+                let newTimestamp = Date.now();
+
+                db.ref('users/' + phone).update({
+                    coins: currentCoins,
+                    daily_ad_count: currentDailyAds,
+                    total_ads_watched: currentTotalAds,
+                    last_ad_date: todayDate,
+                    last_ad_timestamp: newTimestamp
+                }).then(() => {
+                    alert("🎉 مبارک ہو! آپ کو 10 کوائنز مل گئے ہیں اور فائر بیس میں ایڈ کاؤنت اپڈیٹ ہو گیا ہے۔");
+
+                    // Referral commission update
+                    if (val.referred_by) {
+                        db.ref('id_map/' + val.referred_by).once('value', refSnap => {
+                            if (refSnap.exists()) {
+                                let refPhone = refSnap.val();
+                                db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
+                                    return (Number(refCoins) || 0) + 1;
+                                });
+                            }
                         });
                     }
                 });
             }
-            checkCooldownStatus();
-        }).catch(err => {
-            alert("Error updating database: " + err.message);
         });
     }
 
