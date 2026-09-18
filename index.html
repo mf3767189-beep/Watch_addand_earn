@@ -75,6 +75,7 @@
             <h3 style="color: #00a884; margin-bottom: 10px;">Ad Task</h3>
             <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">Click ad, stay on page for 15 Seconds to get reward.</p>
             <button class="btn" id="watchBtn" onclick="startAdsterraTask()">Watch Ad & Earn 🪙</button>
+            <p id="cooldownText" style="font-size: 12px; color: #ffd700; margin-top: 8px;"></p>
         </div>
 
         <!-- REFERRAL SYSTEM CARD -->
@@ -124,7 +125,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // آپ کا دیا ہوا ایڈ س্টিرا لنک
     const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
 
     let isLogin = true;
@@ -134,7 +134,9 @@
     let myReferrerId = null;
     
     const DAILY_AD_LIMIT = 25;
-    const AD_TIMER_SECONDS = 15; // اب ٹائمر صرف 15 سیکنڈ کا ہے
+    const AD_TIMER_SECONDS = 15;     // ایڈ دیکھنے کا ٹائمر (15 سیکنڈ)
+    const COOLDOWN_SECONDS = 45;     // اگلا ایڈ دیکھنے سے پہلے کا گیپ (45 سیکنڈ)
+    let isCooldownActive = false;
 
     let todayAdsWatched = 0;
     let totalAdsWatched = 0;
@@ -270,12 +272,14 @@
                 document.getElementById('refLink').innerText = `${currentCleanUrl}?ref=${userId}`;
 
                 let btn = document.getElementById('watchBtn');
-                if (todayAdsWatched >= DAILY_AD_LIMIT) {
-                    btn.disabled = true;
-                    btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-                } else {
-                    btn.disabled = false;
-                    btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                if (!isCooldownActive) {
+                    if (todayAdsWatched >= DAILY_AD_LIMIT) {
+                        btn.disabled = true;
+                        btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                    } else {
+                        btn.disabled = false;
+                        btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                    }
                 }
             }
         });
@@ -287,32 +291,64 @@
     }
 
     function startAdsterraTask() {
-        if (todayAdsWatched >= DAILY_AD_LIMIT) {
-            alert("Daily 25 Ads limit reached!");
+        if (todayAdsWatched >= DAILY_AD_LIMIT || isCooldownActive) {
             return;
         }
 
-        // ایڈ س্টিرا لنک اوپن ہوگا تاکہ کلک کاؤنٹ ہو
+        // ایڈ س্টিرا کا لنک نیا ٹیب میں کھولیں
         window.open(ADSTERRA_LINK, '_blank');
 
         let btn = document.getElementById('watchBtn');
+        let cooldownText = document.getElementById('cooldownText');
         btn.disabled = true;
+        
         let timeLeft = AD_TIMER_SECONDS;
-
         btn.innerText = `Ad Running... (${timeLeft}s)`;
 
+        // 15 سیکنڈ کا ایڈ ٹائمر
         let timerInterval = setInterval(() => {
             timeLeft--;
             if (timeLeft > 0) {
                 btn.innerText = `Ad Running... (${timeLeft}s)`;
             } else {
                 clearInterval(timerInterval);
-                grantReward(btn);
+                grantReward();
+                startCooldown(); // اب 45 سیکنڈ کا کول ڈاؤن شروع ہوگا
             }
         }, 1000);
     }
 
-    function grantReward(btn) {
+    function startCooldown() {
+        isCooldownActive = true;
+        let btn = document.getElementById('watchBtn');
+        let cooldownText = document.getElementById('cooldownText');
+        let coolDownLeft = COOLDOWN_SECONDS;
+
+        btn.disabled = true;
+        btn.innerText = `Please Wait...`;
+        cooldownText.innerText = `⏳ اگلا ایڈ ${coolDownLeft} سیکنڈ بعد دیکھ سکیں گے۔`;
+
+        let coolInterval = setInterval(() => {
+            coolDownLeft--;
+            if (coolDownLeft > 0) {
+                cooldownText.innerText = `⏳ اگلا ایڈ ${coolDownLeft} سیکنڈ بعد دیکھ سکیں گے۔`;
+            } else {
+                clearInterval(coolInterval);
+                isCooldownActive = false;
+                cooldownText.innerText = "";
+                
+                if (todayAdsWatched >= DAILY_AD_LIMIT) {
+                    btn.disabled = true;
+                    btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                } else {
+                    btn.disabled = false;
+                    btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                }
+            }
+        }, 1000);
+    }
+
+    function grantReward() {
         let todayDate = new Date().toISOString().split('T')[0];
         let phone = localStorage.getItem('activeUser');
 
@@ -320,14 +356,6 @@
         todayAdsWatched += 1;
         totalAdsWatched += 1;
         updateBalanceUI();
-
-        if (todayAdsWatched >= DAILY_AD_LIMIT) {
-            btn.disabled = true;
-            btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-        } else {
-            btn.disabled = false;
-            btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-        }
 
         db.ref('users/' + phone).update({
             coins: userCoins,
@@ -389,4 +417,5 @@
 </script>
 
 </body>
-</html>
+            </html>
+            
