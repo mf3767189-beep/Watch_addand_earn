@@ -1,357 +1,253 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AdEarn Rewards - Updated Dashboard</title>
-    <!-- Firebase SDK v8 (Working Version) -->
+    <title>Earn App</title>
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: #0b141a; color: #e9edef; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 400px; position: relative; }
-        .card { background: #111b21; padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid #202c33; text-align: center; }
-        .brand-header { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 15px; }
-        .brand-name { font-size: 20px; font-weight: bold; color: #00a884; }
-        .menu-icon { font-size: 22px; cursor: pointer; color: #00a884; position: absolute; right: 0; top: 0; }
-        .user-profile-bar { background: #182229; padding: 12px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border: 1px solid #202c33; }
-        .wallet { background: #008069; color: white; padding: 18px; border-radius: 12px; margin-bottom: 12px; }
-        .wallet h2 { font-size: 30px; margin-top: 5px; color: #ffd700; }
-        .btn { background: #00a884; color: #111b21; border: none; padding: 14px; width: 100%; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 8px; display: block; }
-        .btn-withdraw { background: #2563eb; color: white; }
-        .btn-support { background: #0088cc; color: white; }
-        .btn-copy { background: #eab308; color: #111b21; margin-top: 10px; }
-        .btn:disabled { background: #2a3942; color: #8696a0; cursor: not-allowed; }
-        input, select, textarea { width: 100%; padding: 11px; margin: 8px 0; border: 1px solid #2a3942; border-radius: 8px; background: #111b21; color: #fff; font-size: 14px; outline: none; }
-        textarea { resize: vertical; min-height: 70px; }
-        .link-text { color: #00a884; cursor: pointer; font-size: 13px; margin-top: 10px; display: inline-block; }
-        .ref-box { background: #182229; padding: 10px; border-radius: 8px; font-size: 12px; color: #00a884; word-break: break-all; margin-top: 8px; border: 1px dashed #00a884; }
-        .ref-stat-box { background: #182229; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #202c33; display: flex; justify-content: space-around; align-items: center; }
-        .ref-stat-item { font-size: 13px; color: #e9edef; }
-        .ref-stat-item b { font-size: 16px; color: #ffd700; }
-        .captcha-box { background: #182229; padding: 12px; border-radius: 10px; border: 1px dashed #00a884; margin-bottom: 10px; text-align: center; }
-        .promo-task-box { background: #182229; border: 1px solid #2a3942; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: right; direction: rtl; }
-        .admin-panel { background: #1f2c34; border: 1px solid #00a884; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: right; direction: rtl; }
-        .admin-panel h4 { color: #00a884; margin-bottom: 8px; border-bottom: 1px solid #2a3942; padding-bottom: 5px; }
-        .dropdown-menu { position: absolute; top: 40px; right: 0; background: #1f2c34; border: 1px solid #2a3942; border-radius: 10px; width: 230px; display: none; z-index: 500; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .dropdown-item { padding: 12px 15px; font-size: 13px; color: #e9edef; cursor: pointer; border-bottom: 1px solid #2a3942; text-align: right; direction: rtl; }
-        .dropdown-item:hover { background: #2a3942; color: #00a884; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: #111b21; padding: 20px; border-radius: 14px; width: 100%; max-width: 350px; border: 1px solid #00a884; text-align: center; max-height: 85vh; overflow-y: auto; }
-        .user-data-row { background: #182229; padding: 10px; border-radius: 8px; margin-bottom: 8px; text-align: right; direction: rtl; border: 1px solid #2a3942; font-size: 12px; }
+        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 15px; }
+        .container { max-width: 450px; margin: 0 auto; background: #1f2c34; padding: 15px; border-radius: 10px; }
         .hidden { display: none !important; }
-        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 12px; background: #22c55e; color: #000; font-weight: bold; }
+        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; box-sizing: border-box; }
+        input, select { background: #2a3942; color: #fff; }
+        button { background: #00a884; color: #111b21; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
+        .card { background: #202c33; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #2a3942; }
+        .promo-task-box, .user-data-row { background: #111b21; padding: 10px; border-radius: 6px; margin-top: 8px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #1f2c34; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
     </style>
 </head>
 <body>
 
 <div class="container">
-
-    <!-- 1. AUTH SCREEN -->
-    <div id="authScreen" class="card">
-        <div class="brand-header">
-            <span class="brand-name">AdEarn Rewards</span>
-        </div>
-        <h3 id="authTitle" style="color: #8696a0; margin-bottom: 15px; font-size: 15px;">Login to Your Account</h3>
-        <input type="text" id="authPhone" placeholder="موبائل نمبر (مثلاً 03001234567)">
-        <input type="password" id="authPassword" placeholder="پاسورڈ">
-        <button class="btn" id="authBtn" onclick="processAuth()">Login</button>
-        <p class="link-text" onclick="toggleMode()" id="toggleText">Don't have an account? Sign Up</p>
+    <!-- Auth Screen -->
+    <div id="authScreen">
+        <h2>Login / Sign Up</h2>
+        <input type="tel" id="phone" placeholder="Enter Phone Number">
+        <input type="password" id="pass" placeholder="Enter Password">
+        <button id="authBtn" onclick="handleAuth()">Login / Sign Up</button>
     </div>
 
-    <!-- 2. DASHBOARD SCREEN -->
+    <!-- Dashboard Screen -->
     <div id="dashboardScreen" class="hidden">
-        <div class="brand-header">
-            <span class="brand-name">AdEarn Rewards</span>
-            <span class="menu-icon" onclick="toggleDropdown()">☰</span>
-
-            <!-- DROPDOWN MENU -->
-            <div id="dropdownMenu" class="dropdown-menu">
-                <div class="dropdown-item" onclick="openPromotionModal()">🚀 لنکس / کیمپین پروموشن</div>
-                <div class="dropdown-item" onclick="openPrivacyModal()">📜 پرائیویسی اور اصول</div>
-                <div id="adminMenuDataBtn" class="dropdown-item hidden" style="color: #ffd700; font-weight: bold;" onclick="openAllUsersDataModal()">📊 تمام یوزرز کا ڈیٹا (Admin)</div>
-                <div id="adminMenuPromoBtn" class="dropdown-item hidden" style="color: #00a884; font-weight: bold;" onclick="openAdminPromoApprovalModal()">🛡️ پینڈنگ پروموشنز اپروو کریں</div>
-            </div>
+        <div style="display:flex; justify-style:space-between; align-items:center;">
+            <h3>Dashboard</h3>
+            <button onclick="toggleDropdown()" style="width:auto; padding:5px 10px;">☰ Menu</button>
+        </div>
+        
+        <div id="dropdownMenu" class="hidden" style="background:#2a3942; padding:10px; border-radius:6px; margin-bottom:10px;">
+            <button onclick="openPromotionModal()">Promote Link</button>
+            <button id="adminMenuDataBtn" class="hidden" onclick="openAllUsersDataModal()">All Users Data (Admin)</button>
+            <button id="adminMenuPromoBtn" class="hidden" onclick="openAdminPromoApprovalModal()">Pending Promos (Admin)</button>
+            <button onclick="openPrivacyModal()">Privacy Policy</button>
+            <button onclick="logout()" style="background:#ef4444; color:#fff;">Logout</button>
         </div>
 
-        <!-- ADMIN PANEL -->
-        <div id="adminPanel" class="admin-panel hidden">
-            <h4>🛠️ ایڈمن کنٹرول پینل</h4>
-            <div style="font-size: 12px; line-height: 1.6; color: #e9edef;">
-                👑 سٹیٹس: <b style="color:#ffd700;">سپر ایڈمن (ID-340387)</b><br>
-                👥 ٹوٹل رجسٹرڈ یوزرز: <b id="adminTotalUsers" style="color:#ffd700;">0</b><br>
-                🔗 آپ کا انوائیٹ لنک: <span id="adminMyInvite" style="color:#00a884; word-break:break-all;">Loading...</span>
-            </div>
-        </div>
-
-        <div class="user-profile-bar">
-            <div>🆔 <span id="displayUserId" style="color:#00a884; font-weight:bold;">ID-0000</span></div>
-            <span class="status-badge">🔥 Active</span>
-            <button onclick="logout()" style="background: #202c33; border: none; color: #ef4444; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Logout</button>
-        </div>
-
-        <!-- WALLET -->
         <div class="card">
-            <div class="wallet">
-                <p>Your Balance</p>
-                <h2>🪙 <span id="coins">0</span> Coins</h2>
-                <h3>💵 $<span id="dollars">0.00</span> USD</h3>
-            </div>
-            <div style="font-size: 12px; color: #8696a0; line-height: 1.5;">
-                ⚡ 1 Ad Watch = 10 Coins (Max 25 Ads/Day)<br>
-                🤝 Referral Bonus = 1 Coin Per Ad Watch<br>
-                🎯 Min Withdraw = 30,000 Coins ($5.00)
-            </div>
+            <p>🆔 User ID: <span id="displayUserId">...</span></p>
+            <p>🪙 Coins: <b id="coins">0</b> ($<span id="dollars">0.00</span>)</p>
         </div>
 
-        <!-- AD TASK WITH CAPTCHA -->
         <div class="card">
-            <h3 style="color: #00a884; margin-bottom: 10px;">Ad Task & Captcha</h3>
-            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">پہلے کیپچا حل کریں، پھر ایڈ بٹن دبائیں۔ 15 سیکنڈ ایڈ دیکھیں اور 45 سیکنڈ کول ڈاؤن کا انتظار کریں۔</p>
-            
-            <div class="captcha-box">
-                <span id="captchaQuestion" style="font-weight: bold; color: #ffd700; font-size: 16px;">5 + 3 = ?</span>
-                <input type="number" id="captchaAnswer" placeholder="جواب درج کریں" style="text-align: center; margin-top: 6px;">
-            </div>
-
-            <button class="btn" id="watchBtn" onclick="startAdsterraTask()">Watch Ad & Earn 🪙</button>
+            <h4>Watch Ads & Earn</h4>
+            <p>Solve Captcha: <span id="captchaQuestion">...</span></p>
+            <input type="number" id="captchaAnswer" placeholder="Enter answer">
+            <button id="watchBtn" onclick="startAdsterraTask()">Watch Ad & Earn</button>
         </div>
 
-        <!-- PROMOTION LINKS SECTION -->
-        <div class="card" style="text-align: right; direction: rtl;">
-            <h3 style="color: #ffd700; margin-bottom: 8px; text-align: center;">🌐 ممبرز کی پروموٹ شدہ لنکس</h3>
-            <div id="userPromoLinksContainer">
-                <p style="font-size: 12px; color: #8696a0; text-align: center;">اس وقت کوئی پروموشن لنک دستیاب نہیں ہے۔</p>
-            </div>
-        </div>
-
-        <!-- REFERRAL SYSTEM -->
         <div class="card">
-            <h3 style="color: #ffd700;">🤝 Invite & Earn Lifetime</h3>
-            <p style="font-size: 12px; color: #8696a0; margin-top: 5px;">
-                اپنے دوستوں کو انوائٹ کریں اور لائف ٹائم کمیشن حاصل کریں۔
-            </p>
-            <div class="ref-stat-box">
-                <div class="ref-stat-item">👥 Total Invited Users: <b id="totalRefUsers">0</b></div>
-            </div>
-            <div class="ref-box" id="refLink">Generating link...</div>
-            <button class="btn btn-copy" onclick="copyReferralLink()">Copy Referral Link 📋</button>
+            <h4>🤝 Invite & Earn Lifetime</h4>
+            <p>👥 Total Invited: <b id="totalRefUsers">0</b></p>
+            <p>🔗 Link: <span id="refLink" style="word-break:break-all; font-size:12px; color:#00a884;">...</span></p>
+            <button onclick="copyReferralLink()">Copy Referral Link</button>
         </div>
 
-        <!-- WITHDRAW SECTION -->
         <div class="card">
-            <h3 style="color: #00a884;">Withdraw ($ USD)</h3>
+            <h4>📢 Promoted Tasks</h4>
+            <div id="userPromoLinksContainer"></div>
+        </div>
+
+        <div class="card">
+            <h4>💸 Withdraw</h4>
             <select id="method">
-                <option value="Binance Pay ID (USDT)">Binance Pay ID (USDT)</option>
-                <option value="Easypaisa (PKR)">Easypaisa (PKR)</option>
-                <option value="JazzCash (PKR)">JazzCash (PKR)</option>
+                <option value="Easypaisa">Easypaisa</option>
+                <option value="Jazzcash">Jazzcash</option>
+                <option value="Binance">Binance Pay ID</option>
             </select>
-            <input type="text" id="accountNo" placeholder="Binance Pay ID / Account No">
-            <button class="btn btn-withdraw" onclick="withdrawCoins()">Request Withdraw 🚀</button>
+            <input type="text" id="accountNo" placeholder="Account Number / Binance ID">
+            <button onclick="withdrawCoins()">Withdraw (Min 30,000 Coins)</button>
+            <button onclick="openSupport()" style="background:#3b82f6; color:#fff; margin-top:5px;">Contact Support</button>
         </div>
 
-        <div class="card">
-            <button class="btn btn-support" onclick="openSupport()">Support on Telegram 💬</button>
+        <div id="adminPanel" class="card hidden" style="border:1px solid #10b981;">
+            <h4 style="color:#10b981;">👑 Admin Panel</h4>
+            <p>Total Users: <b id="adminTotalUsers">0</b></p>
+            <p>Admin Invite Link: <span id="adminMyInvite" style="font-size:10px;"></span></p>
         </div>
     </div>
-
 </div>
 
-<!-- MODALS -->
+<!-- Modals -->
 <div id="promotionModal" class="modal hidden">
-    <div class="modal-content" style="text-align: right; direction: rtl;">
-        <h3 style="color: #ffd700; margin-bottom: 10px; text-align: center;">🚀 لنکس اور کیمپین پروموشن</h3>
-        <input type="text" id="promoTitle" placeholder="عنوان درج کریں">
-        <textarea id="promoDesc" placeholder="تفصیل/ڈسکرپشن لکھیں"></textarea>
-        <input type="text" id="promoLink" placeholder="اپنا لنک یہاں لکھیں">
-        <select id="depositMethod">
-            <option value="Easypaisa">Easypaisa</option>
-            <option value="JazzCash">JazzCash</option>
-            <option value="Binance Pay ID">Binance Pay ID</option>
-        </select>
-        <input type="number" id="depositAmount" placeholder="رقم درج کریں">
-        <input type="text" id="transactionId" placeholder="ٹرانزیکشن ID لکھیں">
-        <button class="btn" onclick="submitPromotionRequest()">سبمٹ برائے ایڈمن اپروول 🚀</button>
-        <button class="btn" style="background: #202c33; color: #ef4444; margin-top: 5px;" onclick="closePromotionModal()">بند کریں ❌</button>
+    <div class="modal-content">
+        <h3>Submit Promotion</h3>
+        <input type="text" id="promoTitle" placeholder="Title">
+        <input type="text" id="promoDesc" placeholder="Description">
+        <input type="url" id="promoLink" placeholder="Link URL">
+        <select id="depositMethod"><option value="Easypaisa">Easypaisa</option><option value="Jazzcash">Jazzcash</option></select>
+        <input type="number" id="depositAmount" placeholder="Amount Paid (PKR)">
+        <input type="text" id="transactionId" placeholder="Transaction ID (Trx ID)">
+        <button onclick="submitPromotionRequest()">Submit Request</button>
+        <button onclick="closePromotionModal()" style="background:#6b7280; color:#fff;">Close</button>
     </div>
 </div>
 
 <div id="privacyModal" class="modal hidden">
-    <div class="modal-content" style="text-align: right; direction: rtl;">
-        <h3 style="color: #00a884; margin-bottom: 10px; text-align: center;">📜 پرائیویسی اور اصول</h3>
-        <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 10px;">
-            1. کم از کم وڈ ڈرا $5.00 (30,000 Coins) ہے۔<br>
-            2. ایک دن میں میکسیمم 25 ایڈز دیکھے جا سکتے ہیں۔<br>
-            3. جعلی کلکس یا غلط کیپچا پر اکاؤنٹ بلاک کیا جا سکتا ہے۔
-        </p>
-        <button class="btn" onclick="closePrivacyModal()">بند کریں ❌</button>
+    <div class="modal-content">
+        <h3>Privacy Policy</h3>
+        <p style="font-size:12px;">We value your privacy. Your data is stored securely and never shared with third parties.</p>
+        <button onclick="closePrivacyModal()">Close</button>
     </div>
 </div>
 
 <div id="allUsersDataModal" class="modal hidden">
-    <div class="modal-content" style="text-align: right; direction: rtl;">
-        <h3 style="color: #ffd700; margin-bottom: 12px; text-align: center;">📊 تمام رجسٹرڈ یوزرز کا ڈیٹا</h3>
-        <div id="allUsersListContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 12px;"></div>
-        <button class="btn" style="background: #202c33; color: #ef4444;" onclick="closeAllUsersDataModal()">بند کریں ❌</button>
+    <div class="modal-content">
+        <h3>All Users Data</h3>
+        <div id="allUsersListContainer"></div>
+        <button onclick="closeAllUsersDataModal()" style="margin-top:10px;">Close</button>
     </div>
 </div>
 
 <div id="adminPromoApprovalModal" class="modal hidden">
-    <div class="modal-content" style="text-align: right; direction: rtl;">
-        <h3 style="color: #ffd700; margin-bottom: 12px; text-align: center;">🛡️ پینڈنگ پروموشن کیمپینز</h3>
-        <div id="pendingPromoListContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 12px;"></div>
-        <button class="btn" style="background: #202c33; color: #ef4444;" onclick="closeAdminPromoApprovalModal()">بند کریں ❌</button>
+    <div class="modal-content">
+        <h3>Pending Promotion Requests</h3>
+        <div id="pendingPromoListContainer"></div>
+        <button onclick="closeAdminPromoApprovalModal()" style="margin-top:10px;">Close</button>
     </div>
-</div>
-
-<script>
+                            </div>
+            <script>
+    // --- Firebase Configuration ---
     const firebaseConfig = {
-        apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
-        authDomain: "addearn-8e4b6.firebaseapp.com",
-        databaseURL: "https://addearn-8e4b6-default-rtdb.firebaseio.com",
-        projectId: "addearn-8e4b6",
-        storageBucket: "addearn-8e4b6.firebasestorage.app",
-        messagingSenderId: "156218824451",
-        appId: "1:156218824451:web:840c8ea2afeadb32a6bb36"
+        databaseURL: "YOUR_FIREBASE_DATABASE_URL_HERE"
     };
-
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.database();
 
-    const ADMIN_USER_ID = "ID-340387";
-    const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
-
-    let isLogin = true;
-    let currentUserPhone = localStorage.getItem('activeUser') || null;
-    let userCoins = 0;
-    let userId = "";
-    let myReferrerId = null;
-    let num1 = 0, num2 = 0;
-    
-    const DAILY_AD_LIMIT = 25;
+    const ADMIN_USER_ID = "ADMIN_ID_HERE";
+    const ADSTERRA_LINK = "https://example.com";
+    const DAILY_AD_LIMIT = 20;
     const AD_TIMER_SECONDS = 15;
-    const COOLDOWN_SECONDS = 45;
-    let isBusy = false;
+    const COOLDOWN_SECONDS = 5;
 
+    let currentUserPhone = '';
+    let userId = '';
+    let userCoins = 0;
     let todayAdsWatched = 0;
     let totalAdsWatched = 0;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const autoRefId = urlParams.get('ref') || null;
+    let myReferrerId = null;
+    let autoRefId = null;
+    let isBusy = false;
+    let num1 = 0, num2 = 0;
 
     window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        autoRefId = urlParams.get('ref');
+
         generateNewCaptcha();
-        if (currentUserPhone) {
-            loadDashboard(currentUserPhone);
+
+        let active = localStorage.getItem('activeUser');
+        if (active) {
+            currentUserPhone = active;
+            loadDashboard(active);
         }
     };
 
     function generateNewCaptcha() {
-        num1 = Math.floor(Math.random() * 9) + 1;
-        num2 = Math.floor(Math.random() * 9) + 1;
-        document.getElementById('captchaQuestion').innerText = num1 + " + " + num2 + " = ?";
-    }
-
-    function toggleMode() {
-        isLogin = !isLogin;
-        document.getElementById('authTitle').innerText = isLogin ? "Login to Your Account" : "Create New Account";
-        document.getElementById('authBtn').innerText = isLogin ? "Login" : "Sign Up";
-        document.getElementById('toggleText').innerText = isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login";
+        num1 = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * 10) + 1;
+        let capElem = document.getElementById('captchaQuestion');
+        if (capElem) capElem.innerText = `${num1} + ${num2} = ?`;
     }
 
     function generateUniqueId() {
-        return 'ID-' + Math.floor(100000 + Math.random() * 900000);
+        return 'U' + Math.floor(100000 + Math.random() * 900000);
     }
 
-    function processAuth() {
-        let phoneInput = document.getElementById('authPhone').value.trim();
-        let passInput = document.getElementById('authPassword').value.trim();
-
-        if (!phoneInput || !passInput) {
-            alert("⚠️ نمبر اور پاسورڈ دونوں درج کریں!");
-            return;
-        }
-
-        let cleanPhone = phoneInput.replace(/[^0-9]/g, '');
-        if (cleanPhone.length < 10) {
-            alert("⚠️ درست موبائل نمبر درج کریں!");
-            return;
-        }
-
+    function handleAuth() {
+        let phone = document.getElementById('phone').value.trim();
+        let pass = document.getElementById('pass').value.trim();
         let authBtn = document.getElementById('authBtn');
+
+        if (!phone || !pass) {
+            alert("❌ Please enter phone and password!");
+            return;
+        }
+
+        cleanPhone = phone.replace(/[^0-9]/g, '');
         authBtn.disabled = true;
         authBtn.innerText = "Processing...";
 
-        let userRef = db.ref('users/' + cleanPhone);
-
-        userRef.once('value').then(snapshot => {
-            authBtn.disabled = false;
-            authBtn.innerText = isLogin ? "Login" : "Sign Up";
-
-            if (isLogin) {
-                if (snapshot.exists()) {
-                    let userData = snapshot.val();
-                    if (userData.password === passInput) {
-                        localStorage.setItem('activeUser', cleanPhone);
-                        currentUserPhone = cleanPhone;
-                        loadDashboard(cleanPhone);
-                    } else {
-                        alert("❌ پاسورڈ غلط ہے!");
-                    }
+        db.ref('users/' + cleanPhone).once('value').then(snapshot => {
+            if (snapshot.exists()) {
+                let data = snapshot.val();
+                if (data.password === pass) {
+                    localStorage.setItem('activeUser', cleanPhone);
+                    currentUserPhone = cleanPhone;
+                    alert("✅ Login Successful!");
+                    loadDashboard(cleanPhone);
                 } else {
-                    alert("❌ اکاؤنٹ موجود نہیں! پہلے Sign Up کریں۔");
+                    alert("❌ Incorrect Password!");
+                    authBtn.disabled = false;
+                    authBtn.innerText = "Login / Sign Up";
                 }
             } else {
-                if (snapshot.exists()) {
-                    alert("❌ یہ نمبر پہلے سے رجسٹرڈ ہے! Login کریں۔");
-                } else {
-                    let newGeneratedId = generateUniqueId();
-                    let newUserData = {
-                        user_id: newGeneratedId,
-                        password: passInput,
-                        phone: cleanPhone,
-                        coins: 0,
-                        referral_count: 0,
-                        daily_ad_count: 0,
-                        total_ads_watched: 0,
-                        last_ad_date: "",
-                        created_at: new Date().toISOString()
-                    };
+                let newGeneratedId = generateUniqueId();
+                let newUserData = {
+                    user_id: newGeneratedId,
+                    password: pass,
+                    phone: cleanPhone,
+                    coins: 0,
+                    referral_count: 0,
+                    daily_ad_count: 0,
+                    total_ads_watched: 0,
+                    last_ad_date: '',
+                    created_at: new Date().toISOString()
+                };
+
+                if (autoRefId) {
+                    newUserData.referred_by = autoRefId;
+                }
+
+                db.ref('users/' + cleanPhone).set(newUserData).then(() => {
+                    db.ref('id_map/' + newGeneratedId).set(cleanPhone);
 
                     if (autoRefId) {
-                        newUserData.referred_by = autoRefId;
+                        db.ref('id_map/' + autoRefId).once('value', refSnap => {
+                            if (refSnap.exists()) {
+                                let refPhone = refSnap.val();
+                                db.ref('users/' + refPhone + '/referral_count').transaction(currentCount => {
+                                    return (Number(currentCount) || 0) + 1;
+                                });
+                            }
+                        });
                     }
 
-                    userRef.set(newUserData).then(() => {
-                        db.ref('id_map/' + newGeneratedId).set(cleanPhone);
-
-                        if (autoRefId) {
-                            db.ref('id_map/' + autoRefId).once('value', refSnap => {
-                                if (refSnap.exists()) {
-                                    let refPhone = refSnap.val();
-                                    db.ref('users/' + refPhone + '/referral_count').transaction(currentCount => {
-                                        return (currentCount || 0) + 1;
-                                    });
-                                }
-                            });
-                        }
-
-                        localStorage.setItem('activeUser', cleanPhone);
-                        currentUserPhone = cleanPhone;
-                        alert("✅ اکاؤنٹ کامیابی سے بن گیا!");
-                        loadDashboard(cleanPhone);
-                    }).catch(err => {
-                        alert("ڈوٹابیس ایرر: " + err.message);
-                    });
-                }
+                    localStorage.setItem('activeUser', cleanPhone);
+                    currentUserPhone = cleanPhone;
+                    alert("✅ Account Created Successfully!");
+                    loadDashboard(cleanPhone);
+                });
             }
         }).catch(err => {
             authBtn.disabled = false;
-            authBtn.innerText = isLogin ? "Login" : "Sign Up";
-            alert("کنکشن ایرر: " + err.message);
+            authBtn.innerText = "Login / Sign Up";
+            alert("❌ Error: " + err.message);
         });
     }
 
@@ -379,15 +275,8 @@
 
                 todayAdsWatched = (val.last_ad_date === todayDate) ? (Number(val.daily_ad_count) || 0) : 0;
                 totalAdsWatched = Number(val.total_ads_watched) || 0;
-                                updateBalanceUI();
-                document.getElementById('displayUserId').innerText = userId;
-                document.getElementById('totalRefUsers').innerText = refCount;
 
-                let currentCleanUrl = window.location.href.split('?')[0];
-                let inviteLink = `${currentCleanUrl}?ref=${userId}`;
-                document.getElementById('refLink').innerText = inviteLink;
-                    
-                                updateBalanceUI();
+                updateBalanceUI();
                 document.getElementById('displayUserId').innerText = userId;
                 document.getElementById('totalRefUsers').innerText = refCount;
 
@@ -421,8 +310,7 @@
 
         renderPromoLinks();
     }
-
-    function renderPromoLinks() {
+                    function renderPromoLinks() {
         let container = document.getElementById('userPromoLinksContainer');
         db.ref('promos_approved').on('value', function(snapshot) {
             let approved = snapshot.val() || {};
@@ -458,13 +346,11 @@
     }
 
     function startAdsterraTask() {
-        if (todayAdsWatched >= DAILY_AD_LIMIT || isBusy) {
-            return;
-        }
+        if (todayAdsWatched >= DAILY_AD_LIMIT || isBusy) return;
 
         let ans = parseInt(document.getElementById('captchaAnswer').value);
         if (isNaN(ans) || ans !== (num1 + num2)) {
-            alert("❌ Incorrect Captcha! Please enter the correct sum.");
+            alert("❌ Incorrect Captcha!");
             generateNewCaptcha();
             return;
         }
@@ -492,7 +378,6 @@
     function startCooldownTimer() {
         let btn = document.getElementById('watchBtn');
         let coolDownLeft = COOLDOWN_SECONDS;
-
         btn.disabled = true;
         btn.innerText = `⏳ Next Ad in ${coolDownLeft}s`;
 
@@ -519,7 +404,6 @@
 
     function grantReward() {
         let todayDate = new Date().toISOString().split('T')[0];
-
         userCoins += 10;
         todayAdsWatched += 1;
         totalAdsWatched += 1;
@@ -558,17 +442,16 @@
         }
 
         db.ref('promos_pending').push({
-            user_id: userId,
-            title: title, desc: desc, link: link, depositMethod: depositMethod, amount: amount, txId: txId
+            user_id: userId, title: title, desc: desc, link: link, depositMethod: depositMethod, amount: amount, txId: txId
         });
 
         closePromotionModal();
-        alert("✅ Promotion request submitted for admin approval!");
+        alert("✅ Promotion request submitted!");
     }
 
     function toggleDropdown() {
         let m = document.getElementById('dropdownMenu');
-        m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+        m.classList.toggle('hidden');
     }
 
     function openPromotionModal() { document.getElementById('promotionModal').classList.remove('hidden'); toggleDropdown(); }
@@ -629,19 +512,16 @@
     function copyReferralLink() {
         let linkText = document.getElementById('refLink').innerText;
         navigator.clipboard.writeText(linkText);
-        alert("📋 Referral Link copied to clipboard!");
+        alert("📋 Referral Link copied!");
     }
 
     function withdrawCoins() {
         let method = document.getElementById('method').value;
         let acc = document.getElementById('accountNo').value.trim();
         
-        if (!acc) {
-            alert("Enter your account number/Binance ID!");
-            return;
-        }
+        if (!acc) { alert("Enter account number!"); return; }
         if (userCoins < 30000 && userId !== ADMIN_USER_ID) {
-            alert("Minimum withdrawal is 30,000 Coins ($5.00)!");
+            alert("Minimum withdrawal is 30,000 Coins!");
             return;
         }
 
@@ -664,9 +544,5 @@
         location.reload();
     }
 </script>
-
 </body>
 </html>
-
-
-              
