@@ -5,14 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AdEarn Rewards</title>
 
-    <!-- 1. Error Catching Script (MUST BE FIRST) -->
-    <script>
-        window.onerror = function(msg, url, line) {
-            alert("⚠️ کوڈ میں مسئلہ آیا ہے:\n" + msg + "\nLine: " + line);
-            return false;
-        };
-    </script>
-    
     <!-- Firebase SDK Compat Version -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -66,8 +58,10 @@
         <h3 id="authTitle" style="color: #8696a0; margin-bottom: 15px; font-size: 15px;">Login to Your Account</h3>
         <input type="number" id="authPhone" placeholder="موبائل نمبر (مثلاً 03001234567)">
         <input type="password" id="authPassword" placeholder="پاسورڈ">
-        <button class="btn" id="authBtn">Login</button>
-        <p class="link-text" id="toggleText">Don't have an account? Sign Up</p>
+        
+        <!-- DIRECT ONCLICK ATTACHED -->
+        <button class="btn" id="authBtn" onclick="handleAuth()">Login</button>
+        <p class="link-text" id="toggleText" onclick="toggleAuthMode()">Don't have an account? Sign Up</p>
     </div>
 
     <!-- 2. DASHBOARD SCREEN -->
@@ -230,10 +224,12 @@
     let activePhone = localStorage.getItem('activeUser') || null;
     let currentUserData = null;
 
-    // SAFE FIREBASE INITIALIZATION
+    // IMMEDIATE CAPTCHA SETUP
+    generateNewCaptcha();
+
     function initFirebaseSafe() {
         if (typeof firebase === 'undefined') {
-            alert("❌ فائر بیس کی فائلیں آن لائن لوڈ نہیں ہو سکیں۔ براہ کرم اپنا انٹرنیٹ کنیکشن چیک کریں!");
+            alert("⚠️ فائر بیس کی آن لائن فائل لوڈ نہیں ہو سکی۔ براہ کرم اپنا انٹرنیٹ کنکشن چیک کریں یا VPN بند کریں!");
             return false;
         }
         if (!firebase.apps.length) {
@@ -243,22 +239,20 @@
         return true;
     }
 
-    window.onload = function() {
-        generateNewCaptcha();
-        
-        // Setup direct click events
-        document.getElementById('authBtn').addEventListener('click', handleAuth);
-        document.getElementById('toggleText').addEventListener('click', toggleAuthMode);
-
-        if (initFirebaseSafe() && activePhone) {
-            loadUserDashboard(activePhone);
+    // Auto load dashboard if previously logged in
+    setTimeout(function() {
+        if (activePhone) {
+            if (initFirebaseSafe()) {
+                loadUserDashboard(activePhone);
+            }
         }
-    };
+    }, 500);
 
     function generateNewCaptcha() {
         num1 = Math.floor(Math.random() * 9) + 1;
         num2 = Math.floor(Math.random() * 9) + 1;
-        document.getElementById('captchaQuestion').innerText = num1 + " + " + num2 + " = ?";
+        let el = document.getElementById('captchaQuestion');
+        if (el) el.innerText = num1 + " + " + num2 + " = ?";
     }
 
     function toggleAuthMode() {
@@ -372,4 +366,9 @@
             if (Object.keys(approved).length === 0) {
                 container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>اس وقت کوئی پروموشن لنک دستیاب نہیں ہے۔</p>";
                 return;
-       
+            }
+            container.innerHTML = "";
+            Object.keys(approved).forEach(function(key) {
+                let item = approved[key];
+                let box = document.createElement('div');
+                box.className = 'promo-task-bo
