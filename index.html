@@ -1,262 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earn App</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 15px; }
-        .container { max-width: 450px; margin: 0 auto; background: #1f2c34; padding: 15px; border-radius: 10px; }
-        .hidden { display: none !important; }
-        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; box-sizing: border-box; }
-        input, select { background: #2a3942; color: #fff; }
-        button { background: #00a884; color: #111b21; font-weight: bold; cursor: pointer; }
-        button:disabled { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
-        .card { background: #202c33; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #2a3942; }
-        .promo-task-box, .user-data-row { background: #111b21; padding: 10px; border-radius: 6px; margin-top: 8px; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #1f2c34; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <!-- Auth Screen -->
-    <div id="authScreen">
-        <h2>Login / Sign Up</h2>
-        <input type="tel" id="phone" placeholder="Enter Phone Number">
-        <input type="password" id="pass" placeholder="Enter Password">
-        <button id="authBtn" onclick="handleAuth()">Login / Sign Up</button>
-    </div>
-
-    <!-- Dashboard Screen -->
-    <div id="dashboardScreen" class="hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>Dashboard</h3>
-            <button onclick="toggleDropdown()" style="width:auto; padding:5px 10px;">☰ Menu</button>
+<!-- Admin Panel Section inside Dashboard -->
+<div id="adminPanel" class="card hidden" style="border: 1px solid #10b981; background: #182229;">
+    <h3 style="color: #10b981; margin-top: 0; display: flex; align-items: center; gap: 8px;">
+        👑 Admin Control Center
+    </h3>
+    
+    <!-- Admin Live Analytics Grid -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 12px;">
+        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #3b82f6;">
+            👥 <b>Total Users:</b> <br><span id="adminTotalUsers" style="font-size: 16px; font-weight: bold;">0</span>
         </div>
-        
-        <div id="dropdownMenu" class="hidden" style="background:#2a3942; padding:10px; border-radius:6px; margin-bottom:10px;">
-            <button onclick="openPromotionModal()">Promote Link</button>
-            <button id="adminMenuDataBtn" class="hidden" onclick="openAllUsersDataModal()">All Users Data (Admin)</button>
-            <button id="adminMenuPromoBtn" class="hidden" onclick="openAdminPromoApprovalModal()">Pending Promos (Admin)</button>
-            <button onclick="openPrivacyModal()">Privacy Policy</button>
-            <button onclick="logout()" style="background:#ef4444; color:#fff;">Logout</button>
+        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #10b981;">
+            🟢 <b>Active Today:</b> <br><span id="adminActiveUsers" style="font-size: 16px; font-weight: bold; color: #10b981;">0</span>
         </div>
-
-        <div class="card">
-            <p>🆔 User ID: <span id="displayUserId">...</span></p>
-            <p>🪙 Coins: <b id="coins">0</b> ($<span id="dollars">0.00</span>)</p>
+        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
+            🔴 <b>Inactive Today:</b> <br><span id="adminInactiveUsers" style="font-size: 16px; font-weight: bold; color: #ef4444;">0</span>
         </div>
-
-        <div class="card">
-            <h4>Watch Ads & Earn</h4>
-            <p>Solve Captcha: <span id="captchaQuestion">...</span></p>
-            <input type="number" id="captchaAnswer" placeholder="Enter answer">
-            <button id="watchBtn" onclick="startAdsterraTask()">Watch Ad & Earn</button>
+        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #f59e0b;">
+            🎬 <b>Today's Ads:</b> <br><span id="adminTodayAds" style="font-size: 16px; font-weight: bold; color: #f59e0b;">0</span>
         </div>
-
-        <div class="card">
-            <h4>🤝 Invite & Earn Lifetime</h4>
-            <p>👥 Total Invited: <b id="totalRefUsers">0</b></p>
-            <p>🔗 Link: <span id="refLink" style="word-break:break-all; font-size:12px; color:#00a884;">...</span></p>
-            <button onclick="copyReferralLink()">Copy Referral Link</button>
+        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #8b5cf6;">
+            💰 <b>Total Coins:</b> <br><span id="adminTotalCoins" style="font-size: 16px; font-weight: bold;">0</span>
         </div>
-
-        <div class="card">
-            <h4>📢 Promoted Tasks</h4>
-            <div id="userPromoLinksContainer"></div>
-        </div>
-
-        <div class="card">
-            <h4>💸 Withdraw</h4>
-            <select id="method">
-                <option value="Easypaisa">Easypaisa</option>
-                <option value="Jazzcash">Jazzcash</option>
-                <option value="Binance">Binance Pay ID</option>
-            </select>
-            <input type="text" id="accountNo" placeholder="Account Number / Binance ID">
-            <button onclick="withdrawCoins()">Withdraw (Min 30,000 Coins)</button>
-            <button onclick="openSupport()" style="background:#3b82f6; color:#fff; margin-top:5px;">Contact Support</button>
-        </div>
-
-        <div id="adminPanel" class="card hidden" style="border:1px solid #10b981;">
-            <h4 style="color:#10b981;">👑 Admin Panel</h4>
-            <p>Total Users: <b id="adminTotalUsers">0</b></p>
-            <p>Admin Invite Link: <span id="adminMyInvite" style="font-size:10px;"></span></p>
+        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #ec4899;">
+            📢 <b>Pending Promos:</b> <br><span id="adminPendingPromos" style="font-size: 16px; font-weight: bold;">0</span>
         </div>
     </div>
-</div>
 
-<!-- Modals -->
-<div id="promotionModal" class="modal hidden">
-    <div class="modal-content">
-        <h3>Submit Promotion</h3>
-        <input type="text" id="promoTitle" placeholder="Title">
-        <input type="text" id="promoDesc" placeholder="Description">
-        <input type="url" id="promoLink" placeholder="Link URL">
-        <select id="depositMethod"><option value="Easypaisa">Easypaisa</option><option value="Jazzcash">Jazzcash</option></select>
-        <input type="number" id="depositAmount" placeholder="Amount Paid (PKR)">
-        <input type="text" id="transactionId" placeholder="Transaction ID (Trx ID)">
-        <button onclick="submitPromotionRequest()">Submit Request</button>
-        <button onclick="closePromotionModal()" style="background:#6b7280; color:#fff;">Close</button>
+    <!-- Admin Action Buttons -->
+    <button onclick="openAllUsersDataModal()" style="background: #3b82f6; color: #fff; margin-bottom: 8px;">
+        🔍 View All Users & Manage Coins
+    </button>
+    <button onclick="openAdminPromoApprovalModal()" style="background: #f59e0b; color: #111; margin-bottom: 8px;">
+        📢 Pending Promotions Approval
+    </button>
     </div>
-</div>
-
-<div id="privacyModal" class="modal hidden">
-    <div class="modal-content">
-        <h3>Privacy Policy</h3>
-        <p style="font-size:12px;">We value your privacy. Your data is stored securely and never shared with third parties.</p>
-        <button onclick="closePrivacyModal()">Close</button>
-    </div>
-</div>
-
-<div id="allUsersDataModal" class="modal hidden">
-    <div class="modal-content">
-        <h3>All Users Data</h3>
-        <div id="allUsersListContainer"></div>
-        <button onclick="closeAllUsersDataModal()" style="margin-top:10px;">Close</button>
-    </div>
-</div>
-
-<div id="adminPromoApprovalModal" class="modal hidden">
-    <div class="modal-content">
-        <h3>Pending Promotion Requests</h3>
-        <div id="pendingPromoListContainer"></div>
-        <button onclick="closeAdminPromoApprovalModal()" style="margin-top:10px;">Close</button>
-    </div>
-                </div>
-                <script>
-    // --- Your Firebase Config Integrated ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
-        authDomain: "addearn-8e4b6.firebaseapp.com",
-        databaseURL: "https://addearn-8e4b6-default-rtdb.firebaseio.com",
-        projectId: "addearn-8e4b6",
-        storageBucket: "addearn-8e4b6.firebasestorage.app",
-        messagingSenderId: "156218824451",
-        appId: "1:156218824451:web:840c8ea2afeadb32a6bb36"
-    };
-
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
-
-    const ADMIN_USER_ID = "U100000"; // Admin ID
-    const ADSTERRA_LINK = "https://example.com";
-    const DAILY_AD_LIMIT = 20;
-    const AD_TIMER_SECONDS = 15;
-    const COOLDOWN_SECONDS = 5;
-
-    let currentUserPhone = '';
-    let userId = '';
-    let userCoins = 0;
-    let todayAdsWatched = 0;
-    let totalAdsWatched = 0;
-    let myReferrerId = null;
-    let autoRefId = null;
-    let isBusy = false;
-    let num1 = 0, num2 = 0;
-
-    window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        autoRefId = urlParams.get('ref');
-
-        generateNewCaptcha();
-
-        let active = localStorage.getItem('activeUser');
-        if (active) {
-            currentUserPhone = active;
-            loadDashboard(active);
-        }
-    };
-
-    function generateNewCaptcha() {
-        num1 = Math.floor(Math.random() * 10) + 1;
-        num2 = Math.floor(Math.random() * 10) + 1;
-        let capElem = document.getElementById('captchaQuestion');
-        if (capElem) capElem.innerText = `${num1} + ${num2} = ?`;
-    }
-
-    function generateUniqueId() {
-        return 'U' + Math.floor(100000 + Math.random() * 900000);
-    }
-
-    function handleAuth() {
-        let phone = document.getElementById('phone').value.trim();
-        let pass = document.getElementById('pass').value.trim();
-        let authBtn = document.getElementById('authBtn');
-
-        if (!phone || !pass) {
-            alert("❌ Please enter phone and password!");
-            return;
-        }
-
-        cleanPhone = phone.replace(/[^0-9]/g, '');
-        authBtn.disabled = true;
-        authBtn.innerText = "Processing...";
-
-        db.ref('users/' + cleanPhone).once('value').then(snapshot => {
-            if (snapshot.exists()) {
-                let data = snapshot.val();
-                if (data.password === pass) {
-                    localStorage.setItem('activeUser', cleanPhone);
-                    currentUserPhone = cleanPhone;
-                    alert("✅ Login Successful!");
-                    loadDashboard(cleanPhone);
-                } else {
-                    alert("❌ Incorrect Password!");
-                    authBtn.disabled = false;
-                    authBtn.innerText = "Login / Sign Up";
-                }
-            } else {
-                let newGeneratedId = generateUniqueId();
-                let newUserData = {
-                    user_id: newGeneratedId,
-                    password: pass,
-                    phone: cleanPhone,
-                    coins: 0,
-                    referral_count: 0,
-                    daily_ad_count: 0,
-                    total_ads_watched: 0,
-                    last_ad_date: '',
-                    created_at: new Date().toISOString()
-                };
-
-                if (autoRefId) {
-                    newUserData.referred_by = autoRefId;
-                }
-
-                db.ref('users/' + cleanPhone).set(newUserData).then(() => {
-                    db.ref('id_map/' + newGeneratedId).set(cleanPhone);
-
-                    if (autoRefId) {
-                        db.ref('id_map/' + autoRefId).once('value', refSnap => {
-                            if (refSnap.exists()) {
-                                let refPhone = refSnap.val();
-                                db.ref('users/' + refPhone + '/referral_count').transaction(currentCount => {
-                                    return (Number(currentCount) || 0) + 1;
-                                });
-                            }
-                        });
-                    }
-
-                    localStorage.setItem('activeUser', cleanPhone);
-                    currentUserPhone = cleanPhone;
-                    alert("✅ Account Created Successfully!");
-                    loadDashboard(cleanPhone);
-                });
-            }
-        }).catch(err => {
-            authBtn.disabled = false;
-            authBtn.innerText = "Login / Sign Up";
-            alert("❌ Error: " + err.message);
-        });
-    }
+        const ADMIN_USER_ID = "ID-340387"; // Your Admin User ID
 
     function loadDashboard(phone) {
         document.getElementById('authScreen').classList.add('hidden');
@@ -291,14 +69,47 @@
                 let inviteLink = `${currentCleanUrl}?ref=${userId}`;
                 document.getElementById('refLink').innerText = inviteLink;
 
-                if (userId === ADMIN_USER_ID) {
+                // --- Admin Check & Live Analytics Setup ---
+                if (userId === ADMIN_USER_ID || userId.includes("340387") || phone === "340387") {
                     document.getElementById('adminPanel').classList.remove('hidden');
                     document.getElementById('adminMenuDataBtn').classList.remove('hidden');
                     document.getElementById('adminMenuPromoBtn').classList.remove('hidden');
-                    document.getElementById('adminMyInvite').innerText = inviteLink;
 
+                    // Real-time calculation for Admin Dashboard
                     db.ref('users').on('value', function(allSnap) {
-                        document.getElementById('adminTotalUsers').innerText = allSnap.exists() ? allSnap.numChildren() : 0;
+                        let dbVal = allSnap.val() || {};
+                        let totalUsers = 0;
+                        let activeUsers = 0;
+                        let inactiveUsers = 0;
+                        let todayAds = 0;
+                        let totalCoins = 0;
+
+                        Object.keys(dbVal).forEach(function(ph) {
+                            let u = dbVal[ph];
+                            totalUsers++;
+                            
+                            let uCoins = Number(u.coins) || 0;
+                            totalCoins += uCoins;
+
+                            let adsToday = (u.last_ad_date === todayDate) ? (Number(u.daily_ad_count) || 0) : 0;
+                            todayAds += adsToday;
+
+                            if (adsToday > 0) {
+                                activeUsers++;
+                            } else {
+                                inactiveUsers++;
+                            }
+                        });
+
+                        document.getElementById('adminTotalUsers').innerText = totalUsers;
+                        document.getElementById('adminActiveUsers').innerText = activeUsers;
+                        document.getElementById('adminInactiveUsers').innerText = inactiveUsers;
+                        document.getElementById('adminTodayAds').innerText = todayAds;
+                        document.getElementById('adminTotalCoins').innerText = totalCoins;
+                    });
+
+                    db.ref('promos_pending').on('value', function(pSnap) {
+                        document.getElementById('adminPendingPromos').innerText = pSnap.exists() ? pSnap.numChildren() : 0;
                     });
                 }
 
@@ -317,8 +128,82 @@
 
         renderPromoLinks();
     }
-                        function renderPromoLinks() {
+
+    // --- All Users Detailed List with Actions ---
+    function openAllUsersDataModal() {
+        if (document.getElementById('dropdownMenu')) {
+            document.getElementById('dropdownMenu').classList.add('hidden');
+        }
+        let todayDate = new Date().toISOString().split('T')[0];
+
+        db.ref('users').once('value').then(function(snapshot) {
+            let dbVal = snapshot.val() || {};
+            let container = document.getElementById('allUsersListContainer');
+            container.innerHTML = "";
+
+            Object.keys(dbVal).forEach(function(ph) {
+                let u = dbVal[ph];
+                let adsToday = (u.last_ad_date === todayDate) ? (Number(u.daily_ad_count) || 0) : 0;
+                let isActive = adsToday > 0;
+
+                let statusBadge = isActive 
+                    ? `<span style="background:#10b981; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🟢 Active (${adsToday} Ads Today)</span>`
+                    : `<span style="background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🔴 Inactive Today</span>`;
+
+                let rowHtml = `
+                    <div class="user-data-row" style="background:#111b21; padding:10px; border-radius:6px; margin-bottom:8px; border:1px solid #2a3942; font-size:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>🆔 ID: ${u.user_id || 'N/A'}</b>
+                            ${statusBadge}
+                        </div>
+                        <div style="margin-top:4px; color:#a0aec0;">📞 Phone: ${ph}</div>
+                        <div style="margin-top:2px;">🪙 Coins: <b style="color:#00a884;">${u.coins || 0}</b></div>
+                        <div style="margin-top:2px;">🎬 Total Ads Watched: ${u.total_ads_watched || 0}</div>
+                        <div style="margin-top:2px;">👥 Referrals: ${u.referral_count || 0}</div>
+                        
+                        <div style="margin-top:8px; display:flex; gap:5px;">
+                            <button onclick="modifyCoins('${ph}', 100)" style="padding:4px 8px; font-size:11px; background:#10b981; width:auto;">+100 Coins</button>
+                            <button onclick="modifyCoins('${ph}', -100)" style="padding:4px 8px; font-size:11px; background:#ef4444; width:auto;">-100 Coins</button>
+                            <button onclick="customCoinsPrompt('${ph}')" style="padding:4px 8px; font-size:11px; background:#3b82f6; width:auto;">Edit Coins</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += rowHtml;
+            });
+
+            document.getElementById('allUsersDataModal').classList.remove('hidden');
+        });
+    }
+
+    // Function to add or deduct coins from user account
+    function modifyCoins(phone, amount) {
+        db.ref('users/' + phone + '/coins').transaction(function(currentCoins) {
+            let updated = (Number(currentCoins) || 0) + amount;
+            return updated < 0 ? 0 : updated;
+        }).then(() => {
+            alert("✅ Coins updated!");
+            openAllUsersDataModal();
+        });
+    }
+
+    // Function for custom coin amount edit
+    function customCoinsPrompt(phone) {
+        let amountStr = prompt("Enter coins to add or subtract (e.g. 500 or -500):");
+        if (amountStr !== null) {
+            let amount = parseInt(amountStr);
+            if (!isNaN(amount)) {
+                modifyCoins(phone, amount);
+            } else {
+                alert("❌ Invalid input!");
+            }
+        }
+    }
+                    // --- PART 3: Ad Logic, User Management & Admin Actions ---
+
+    function renderPromoLinks() {
         let container = document.getElementById('userPromoLinksContainer');
+        if (!container) return;
+        
         db.ref('promos_approved').on('value', function(snapshot) {
             let approved = snapshot.val() || {};
             if (Object.keys(approved).length === 0) {
@@ -352,12 +237,13 @@
         document.getElementById('dollars').innerText = (userCoins * (5 / 30000)).toFixed(2);
     }
 
+    // --- Strict 15-Second Ad Viewing Logic ---
     function startAdsterraTask() {
         if (todayAdsWatched >= DAILY_AD_LIMIT || isBusy) return;
 
         let ans = parseInt(document.getElementById('captchaAnswer').value);
         if (isNaN(ans) || ans !== (num1 + num2)) {
-            alert("❌ Incorrect Captcha!");
+            alert("❌ Incorrect Captcha! Please solve it first.");
             generateNewCaptcha();
             return;
         }
@@ -368,14 +254,31 @@
         let btn = document.getElementById('watchBtn');
         let timeLeft = AD_TIMER_SECONDS;
         btn.disabled = true;
-        btn.innerText = `Ad Running... (${timeLeft}s)`;
+        btn.innerText = `Watch 15s Ad... (${timeLeft}s)`;
 
-        let timerInterval = setInterval(() => {
+        // Handle Tab switching / Background cheating
+        let handleVisibilityChange = function() {
+            if (document.hidden && isBusy && adInterval) {
+                clearInterval(adInterval);
+                document.removeEventListener("visibilitychange", handleVisibilityChange);
+                isBusy = false;
+                alert("❌ Ad Cancelled! You left the page before 15 seconds completed. No coins awarded.");
+                generateNewCaptcha();
+                document.getElementById('captchaAnswer').value = '';
+                btn.disabled = false;
+                btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        adInterval = setInterval(() => {
             timeLeft--;
             if (timeLeft > 0) {
-                btn.innerText = `Ad Running... (${timeLeft}s)`;
+                btn.innerText = `Watch 15s Ad... (${timeLeft}s)`;
             } else {
-                clearInterval(timerInterval);
+                clearInterval(adInterval);
+                document.removeEventListener("visibilitychange", handleVisibilityChange);
                 grantReward();
                 startCooldownTimer();
             }
@@ -435,6 +338,7 @@
         });
     }
 
+    // --- Promotions Request ---
     function submitPromotionRequest() {
         let title = document.getElementById('promoTitle').value.trim();
         let desc = document.getElementById('promoDesc').value.trim();
@@ -456,9 +360,10 @@
         alert("✅ Promotion request submitted!");
     }
 
+    // --- Dropdown & Modals Control ---
     function toggleDropdown() {
         let m = document.getElementById('dropdownMenu');
-        m.classList.toggle('hidden');
+        if (m) m.classList.toggle('hidden');
     }
 
     function openPromotionModal() { document.getElementById('promotionModal').classList.remove('hidden'); toggleDropdown(); }
@@ -466,21 +371,76 @@
     function openPrivacyModal() { document.getElementById('privacyModal').classList.remove('hidden'); toggleDropdown(); }
     function closePrivacyModal() { document.getElementById('privacyModal').classList.add('hidden'); }
 
+    // --- Admin User Data & Coins Control ---
     function openAllUsersDataModal() {
-        toggleDropdown();
+        if (document.getElementById('dropdownMenu')) {
+            document.getElementById('dropdownMenu').classList.add('hidden');
+        }
+        let todayDate = new Date().toISOString().split('T')[0];
+
         db.ref('users').once('value').then(function(snapshot) {
             let dbVal = snapshot.val() || {};
             let container = document.getElementById('allUsersListContainer');
             container.innerHTML = "";
+
             Object.keys(dbVal).forEach(function(ph) {
                 let u = dbVal[ph];
-                container.innerHTML += `<div class="user-data-row">🆔 ID: <b>${u.user_id || 'N/A'}</b> | Ph: ${ph}<br>Coins: <b>${u.coins || 0}</b></div>`;
+                let adsToday = (u.last_ad_date === todayDate) ? (Number(u.daily_ad_count) || 0) : 0;
+                let isActive = adsToday > 0;
+
+                let statusBadge = isActive 
+                    ? `<span style="background:#10b981; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🟢 Active (${adsToday} Ads)</span>`
+                    : `<span style="background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🔴 Inactive Today</span>`;
+
+                let rowHtml = `
+                    <div class="user-data-row" style="background:#111b21; padding:10px; border-radius:6px; margin-bottom:8px; border:1px solid #2a3942; font-size:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>🆔 ID: ${u.user_id || 'N/A'}</b>
+                            ${statusBadge}
+                        </div>
+                        <div style="margin-top:4px; color:#a0aec0;">📞 Phone: ${ph}</div>
+                        <div style="margin-top:2px;">🪙 Coins: <b style="color:#00a884;">${u.coins || 0}</b></div>
+                        <div style="margin-top:2px;">🎬 Total Ads: ${u.total_ads_watched || 0} | 👥 Ref: ${u.referral_count || 0}</div>
+                        
+                        <div style="margin-top:8px; display:flex; gap:5px;">
+                            <button onclick="modifyCoins('${ph}', 100)" style="padding:4px 8px; font-size:11px; background:#10b981; width:auto;">+100 Coins</button>
+                            <button onclick="modifyCoins('${ph}', -100)" style="padding:4px 8px; font-size:11px; background:#ef4444; width:auto;">-100 Coins</button>
+                            <button onclick="customCoinsPrompt('${ph}')" style="padding:4px 8px; font-size:11px; background:#3b82f6; width:auto;">Edit Coins</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += rowHtml;
             });
+
             document.getElementById('allUsersDataModal').classList.remove('hidden');
         });
     }
+
     function closeAllUsersDataModal() { document.getElementById('allUsersDataModal').classList.add('hidden'); }
 
+    function modifyCoins(phone, amount) {
+        db.ref('users/' + phone + '/coins').transaction(function(currentCoins) {
+            let updated = (Number(currentCoins) || 0) + amount;
+            return updated < 0 ? 0 : updated;
+        }).then(() => {
+            alert("✅ Coins Updated!");
+            openAllUsersDataModal();
+        });
+    }
+
+    function customCoinsPrompt(phone) {
+        let amountStr = prompt("Enter coins to add (+) or deduct (-):");
+        if (amountStr !== null) {
+            let amount = parseInt(amountStr);
+            if (!isNaN(amount)) {
+                modifyCoins(phone, amount);
+            } else {
+                alert("❌ Invalid number!");
+            }
+        }
+    }
+
+    // --- Admin Promo Approval ---
     function openAdminPromoApprovalModal() {
         toggleDropdown();
         db.ref('promos_pending').once('value').then(function(snapshot) {
@@ -494,7 +454,7 @@
                     let item = pending[key];
                     container.innerHTML += `
                         <div class="user-data-row">
-                            🆔 ${item.user_id}<br>📌 <b>${item.title}</b><br>💳 ${item.depositMethod} (${item.amount} PKR) [TX: ${item.txId}]<br>
+                            🆔 User: ${item.user_id}<br>📌 <b>${item.title}</b><br>💳 ${item.depositMethod} (${item.amount} PKR) [Trx ID: ${item.txId}]<br>
                             <button class="btn" style="background:#10b981; color:#fff; padding:6px; margin-top:5px;" onclick="approvePromo('${key}')">Approve ✅</button>
                         </div>`;
                 });
@@ -502,6 +462,7 @@
             document.getElementById('adminPromoApprovalModal').classList.remove('hidden');
         });
     }
+
     function closeAdminPromoApprovalModal() { document.getElementById('adminPromoApprovalModal').classList.add('hidden'); }
 
     function approvePromo(key) {
@@ -510,16 +471,17 @@
             if (item) {
                 db.ref('promos_approved').push(item);
                 db.ref('promos_pending/' + key).remove();
-                alert("✅ Promotion approved!");
+                alert("✅ Promotion Approved!");
                 openAdminPromoApprovalModal();
             }
         });
     }
 
+    // --- Utility Functions ---
     function copyReferralLink() {
         let linkText = document.getElementById('refLink').innerText;
         navigator.clipboard.writeText(linkText);
-        alert("📋 Referral Link copied!");
+        alert("📋 Referral Link Copied!");
     }
 
     function withdrawCoins() {
@@ -527,12 +489,14 @@
         let acc = document.getElementById('accountNo').value.trim();
         
         if (!acc) { alert("Enter account number!"); return; }
-        if (userCoins < 30000 && userId !== ADMIN_USER_ID) {
+        let isAdmin = (userId === ADMIN_USER_ID || userId.includes("340387") || currentUserPhone === "340387");
+
+        if (userCoins < 30000 && !isAdmin) {
             alert("Minimum withdrawal is 30,000 Coins!");
             return;
         }
 
-        if (userId !== ADMIN_USER_ID) {
+        if (!isAdmin) {
             userCoins -= 30000;
             updateBalanceUI();
             db.ref('users/' + currentUserPhone + '/coins').set(userCoins);
@@ -552,4 +516,5 @@
     }
 </script>
 </body>
-</html>
+        </html>
+            
