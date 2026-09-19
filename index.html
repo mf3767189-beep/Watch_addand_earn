@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AdEarn Rewards - Dashboard</title>
+    <title>AdEarn Rewards - Firebase Connected</title>
+    
+    <!-- Firebase SDK (Compat Version for Single File Web Apps) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #0b141a; color: #e9edef; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 400px; }
+        .container { width: 100%; max-width: 400px; position: relative; }
         .card { background: #111b21; padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid #202c33; text-align: center; }
         .brand-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
         .brand-name { font-size: 20px; font-weight: bold; color: #00a884; }
@@ -37,11 +42,12 @@
         .dropdown-item:hover { background: #2a3942; color: #00a884; }
         .user-data-row { background: #182229; padding: 10px; border-radius: 8px; margin-bottom: 8px; text-align: right; direction: rtl; border: 1px solid #2a3942; font-size: 12px; }
         .hidden { display: none; }
+        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 12px; background: #22c55e; color: #000; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container" style="position: relative;">
+<div class="container">
 
     <!-- 1. AUTH SCREEN -->
     <div id="authScreen" class="card">
@@ -75,13 +81,14 @@
             <h4>🛠️ Admin Control Panel</h4>
             <div style="font-size: 12px; line-height: 1.6; color: #e9edef;">
                 👑 Status: <b style="color:#ffd700;">Super Admin (ID-340387)</b><br>
-                👥 Total Registered Users: <b id="adminTotalUsers" style="color:#ffd700;">1</b><br>
+                👥 Live Firebase Users: <b id="adminTotalUsers" style="color:#ffd700;">0</b><br>
                 🔗 Your Invite Link: <span id="adminMyInvite" style="color:#00a884; word-break:break-all;">Loading...</span>
             </div>
         </div>
 
         <div class="user-profile-bar">
             <div>🆔 <span id="displayUserId" style="color:#00a884; font-weight:bold;">ID-0000</span></div>
+            <span class="status-badge">🔥 Firebase Active</span>
             <button onclick="logout()" style="background: #202c33; border: none; color: #ef4444; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Logout</button>
         </div>
 
@@ -212,26 +219,45 @@
 </div>
 
 <script>
+    // YOUR LIVE FIREBASE CONFIGURATION
+    const firebaseConfig = {
+        apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
+        authDomain: "addearn-8e4b6.firebaseapp.com",
+        databaseURL: "https://addearn-8e4b6-default-rtdb.firebaseio.com",
+        projectId: "addearn-8e4b6",
+        storageBucket: "addearn-8e4b6.firebasestorage.app",
+        messagingSenderId: "156218824451",
+        appId: "1:156218824451:web:840c8ea2afeadb32a6bb36",
+        measurementId: "G-WPR4D5571P"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const ADMIN_USER_ID = "ID-340387";
     const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
 
     let isLoginMode = true;
     let num1 = 0, num2 = 0;
     let activePhone = localStorage.getItem('activeUser') || null;
+    let currentUserData = null;
 
     window.onload = function() {
         generateNewCaptcha();
         if (activePhone) {
-            let db = JSON.parse(localStorage.getItem('users_database') || "{}");
-            if (db[activePhone]) {
-                if (!db[activePhone].terms_accepted) {
-                    document.getElementById('termsModal').classList.remove('hidden');
+            db.ref('users/' + activePhone).once('value').then(snapshot => {
+                let user = snapshot.val();
+                if (user) {
+                    if (!user.terms_accepted) {
+                        document.getElementById('termsModal').classList.remove('hidden');
+                    } else {
+                        loadUserDashboard(activePhone);
+                    }
                 } else {
-                    loadUserDashboard(activePhone);
+                    localStorage.removeItem('activeUser');
                 }
-            } else {
-                localStorage.removeItem('activeUser');
-            }
+            });
         }
     };
 
@@ -249,7 +275,7 @@
         document.getElementById('toggleText').innerText = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
     }
 
-    function handleAuth() {
+    async function handleAuth() {
         let phone = document.getElementById('authPhone').value.trim();
         let pass = document.getElementById('authPassword').value.trim();
 
@@ -259,15 +285,18 @@
         }
 
         let cleanPhone = phone.replace(/[^0-9]/g, '');
-        let db = JSON.parse(localStorage.getItem('users_database') || "{}");
         let urlParams = new URLSearchParams(window.location.search);
         let referrerId = urlParams.get('ref') || "";
 
+        let userRef = db.ref('users/' + cleanPhone);
+        let snapshot = await userRef.once('value');
+        let user = snapshot.val();
+
         if (isLoginMode) {
-            if (db[cleanPhone] && db[cleanPhone].password === pass) {
+            if (user && user.password === pass) {
                 localStorage.setItem('activeUser', cleanPhone);
                 activePhone = cleanPhone;
-                if (!db[cleanPhone].terms_accepted) {
+                if (!user.terms_accepted) {
                     document.getElementById('termsModal').classList.remove('hidden');
                 } else {
                     loadUserDashboard(cleanPhone);
@@ -276,13 +305,16 @@
                 alert("❌ غلط فون نمبر یا پاسورڈ!");
             }
         } else {
-            if (db[cleanPhone]) {
+            if (user) {
                 alert("❌ یہ فون نمبر پہلے سے رجسٹرڈ ہے! براہ کرم لاگ ان کریں۔");
             } else {
-                let generatedId = (Object.keys(db).length === 0) ? ADMIN_USER_ID : ('ID-' + Math.floor(100000 + Math.random() * 900000));
+                let allUsersSnap = await db.ref('users').once('value');
+                let totalUsersCount = allUsersSnap.numChildren();
+
+                let generatedId = (totalUsersCount === 0) ? ADMIN_USER_ID : ('ID-' + Math.floor(100000 + Math.random() * 900000));
                 let initialCoins = (generatedId === ADMIN_USER_ID) ? 50000 : 0;
 
-                db[cleanPhone] = {
+                let newUser = {
                     user_id: generatedId,
                     password: pass,
                     coins: initialCoins,
@@ -291,16 +323,19 @@
                     terms_accepted: false
                 };
 
+                await userRef.set(newUser);
+
                 if (referrerId && generatedId !== ADMIN_USER_ID) {
-                    for (let ph in db) {
-                        if (db[ph].user_id === referrerId) {
-                            db[ph].referral_count = (db[ph].referral_count || 0) + 1;
+                    let usersVal = allUsersSnap.val();
+                    for (let ph in usersVal) {
+                        if (usersVal[ph].user_id === referrerId) {
+                            let currRef = usersVal[ph].referral_count || 0;
+                            db.ref('users/' + ph + '/referral_count').set(currRef + 1);
                             break;
                         }
                     }
                 }
 
-                localStorage.setItem('users_database', JSON.stringify(db));
                 localStorage.setItem('activeUser', cleanPhone);
                 activePhone = cleanPhone;
                 document.getElementById('termsModal').classList.remove('hidden');
@@ -309,11 +344,7 @@
     }
 
     function acceptTermsAndProceed() {
-        let db = JSON.parse(localStorage.getItem('users_database') || "{}");
-        if (db[activePhone]) {
-            db[activePhone].terms_accepted = true;
-            localStorage.setItem('users_database', JSON.stringify(db));
-        }
+        db.ref('users/' + activePhone + '/terms_accepted').set(true);
         document.getElementById('termsModal').classList.add('hidden');
         loadUserDashboard(activePhone);
     }
@@ -322,48 +353,22 @@
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardScreen').classList.remove('hidden');
 
-        let db = JSON.parse(localStorage.getItem('users_database') || "{}");
-        let user = db[phone];
-        if (!user) { logout(); return; }
+        db.ref('users/' + phone).on('value', snapshot => {
+            currentUserData = snapshot.val();
+            if (!currentUserData) { logout(); return; }
 
-        if (user.user_id === ADMIN_USER_ID && user.coins < 50000) {
-            user.coins = 50000;
-            db[phone] = user;
-            localStorage.setItem('users_database', JSON.stringify(db));
-        }
+            if (currentUserData.user_id === ADMIN_USER_ID && currentUserData.coins < 50000) {
+                db.ref('users/' + phone + '/coins').set(50000);
+            }
 
-        document.getElementById('displayUserId').innerText = user.user_id;
-        document.getElementById('coins').innerText = user.coins;
-        document.getElementById('withdrawDollars').innerText = (user.coins * (5 / 50000)).toFixed(2);
-        document.getElementById('totalRefUsers').innerText = user.referral_count || 0;
+            document.getElementById('displayUserId').innerText = currentUserData.user_id;
+            document.getElementById('coins').innerText = currentUserData.coins;
+            document.getElementById('withdrawDollars').innerText = (currentUserData.coins * (5 / 50000)).toFixed(2);
+            document.getElementById('totalRefUsers').innerText = currentUserData.referral_count || 0;
 
-        let cleanUrl = window.location.href.split('?')[0];
-        let refLink = `${cleanUrl}?ref=${user.user_id}`;
-        document.getElementById('refLink').innerText = refLink;
+            let cleanUrl = window.location.href.split('?')[0];
+            let refLink = `${cleanUrl}?ref=${currentUserData.user_id}`;
+            document.getElementById('refLink').innerText = refLink;
 
-        if (user.user_id === ADMIN_USER_ID) {
-            document.getElementById('adminPanel').classList.remove('hidden');
-            document.getElementById('adminMenuDataBtn').classList.remove('hidden');
-            document.getElementById('adminMenuPromoBtn').classList.remove('hidden');
-            document.getElementById('adminMyInvite').innerText = refLink;
-            document.getElementById('adminTotalUsers').innerText = Object.keys(db).length;
-        }
-
-        renderPromoLinks();
-    }
-
-    function renderPromoLinks() {
-        let container = document.getElementById('userPromoLinksContainer');
-        let approved = JSON.parse(localStorage.getItem('promos_approved') || "[]");
-        if (approved.length === 0) {
-            container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>اس وقت کوئی پروموشن لنک دستیاب نہیں ہے۔</p>";
-            return;
-        }
-        container.innerHTML = "";
-        approved.forEach((item, index) => {
-            let box = document.createElement('div');
-            box.className = 'promo-task-box';
-            box.innerHTML = `
-                <div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div>
-                <div style="font-size: 11px; color: #e9edef; line-height: 1.4; margin-bottom: 6px;">${item.desc}</div>
-                <a href="${item.link}" target="_blank" onclick="rewardPromo(
+            if (currentUserData.user_id === ADMIN_USER_ID) {
+                document.getElementById('ad
