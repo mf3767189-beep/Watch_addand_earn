@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ur">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AdEarn Rewards - Fully Fixed & Connected</title>
+    <title>AdEarn Rewards</title>
     
-    <!-- Firebase SDK (Compat Version) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
@@ -32,7 +32,7 @@
         .ref-stat-box { background: #182229; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #202c33; display: flex; justify-content: space-around; align-items: center; }
         .ref-stat-item { font-size: 13px; color: #e9edef; }
         .ref-stat-item b { font-size: 16px; color: #ffd700; }
-        .admin-panel { background: #1f2c34; border: 1px solid #00a884; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: left; }
+        .admin-panel { background: #1f2c34; border: 1px solid #00a884; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: right; direction: rtl; }
         .admin-panel h4 { color: #00a884; margin-bottom: 8px; border-bottom: 1px solid #2a3942; padding-bottom: 5px; }
         .captcha-box { background: #182229; padding: 12px; border-radius: 10px; border: 1px dashed #00a884; margin-bottom: 10px; text-align: center; }
         .promo-task-box { background: #182229; border: 1px solid #2a3942; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: right; direction: rtl; }
@@ -56,8 +56,8 @@
             <span class="brand-name">AdEarn Rewards</span>
         </div>
         <h3 id="authTitle" style="color: #8696a0; margin-bottom: 15px; font-size: 15px;">Login to Your Account</h3>
-        <input type="text" id="authPhone" placeholder="Mobile Number (e.g. 03001234567)">
-        <input type="password" id="authPassword" placeholder="Password">
+        <input type="text" id="authPhone" placeholder="موبائل نمبر (مثلاً 03001234567)">
+        <input type="password" id="authPassword" placeholder="پاسورڈ">
         <button class="btn" id="authBtn" onclick="handleAuth()">Login</button>
         <p class="link-text" onclick="toggleAuthMode()" id="toggleText">Don't have an account? Sign Up</p>
     </div>
@@ -79,17 +79,17 @@
 
         <!-- ADMIN PANEL -->
         <div id="adminPanel" class="admin-panel hidden">
-            <h4>🛠️ Admin Control Panel</h4>
+            <h4>🛠️ ایڈمن کنٹرول پینل</h4>
             <div style="font-size: 12px; line-height: 1.6; color: #e9edef;">
-                👑 Status: <b style="color:#ffd700;">Super Admin (ID-340387)</b><br>
-                👥 Live Firebase Users: <b id="adminTotalUsers" style="color:#ffd700;">0</b><br>
-                🔗 Your Invite Link: <span id="adminMyInvite" style="color:#00a884; word-break:break-all;">Loading...</span>
+                👑 سٹیٹس: <b style="color:#ffd700;">سپر ایڈمن (ID-340387)</b><br>
+                👥 ٹوٹل رجسٹرڈ یوزرز: <b id="adminTotalUsers" style="color:#ffd700;">0</b><br>
+                🔗 آپ کا انوائیٹ لنک: <span id="adminMyInvite" style="color:#00a884; word-break:break-all;">Loading...</span>
             </div>
         </div>
 
         <div class="user-profile-bar">
             <div>🆔 <span id="displayUserId" style="color:#00a884; font-weight:bold;">ID-0000</span></div>
-            <span class="status-badge">🔥 Firebase Active</span>
+            <span class="status-badge">🔥 Active</span>
             <button onclick="logout()" style="background: #202c33; border: none; color: #ef4444; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Logout</button>
         </div>
 
@@ -159,19 +159,7 @@
 
 </div>
 
-<!-- TERMS MODAL -->
-<div id="termsModal" class="modal hidden">
-    <div class="modal-content" style="text-align: right; direction: rtl;">
-        <h3 style="color: #00a884; margin-bottom: 12px; text-align: center;">📜 پرائیویسی اور اصول و ضوابط</h3>
-        <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 15px;">
-            1. ہر ایڈ کو لازماً پورا دیکھنا ہوگا۔<br>
-            2. اصولوں کی خلاف ورزی پر اکاؤنٹ بلاک ہو سکتا ہے۔
-        </p>
-        <button class="btn" onclick="acceptTermsAndProceed()">میں اصول تسلیم کرتا ہوں ✅</button>
-    </div>
-</div>
-
-<!-- PROMOTION MODAL -->
+<!-- MODALS -->
 <div id="promotionModal" class="modal hidden">
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #ffd700; margin-bottom: 10px;">🚀 لنکس اور کیمپین پروموشن</h3>
@@ -190,18 +178,14 @@
     </div>
 </div>
 
-<!-- PRIVACY MODAL -->
 <div id="privacyModal" class="modal hidden">
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #00a884; margin-bottom: 10px; text-align: center;">📜 پرائیویسی اور اصول</h3>
-        <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 10px;">
-            1. منیمم ودڈرا لمٹ $5 ہے۔
-        </p>
+        <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 10px;">1. منیمم ودڈرا لمٹ $5 ہے۔<br>2. جعلی کلکس پر اکاؤنٹ بلاک کر دیا جائے گا۔</p>
         <button class="btn" onclick="closePrivacyModal()">بند کریں ❌</button>
     </div>
 </div>
 
-<!-- ADMIN ALL USERS DATA MODAL -->
 <div id="allUsersDataModal" class="modal hidden">
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #ffd700; margin-bottom: 12px; text-align: center;">📊 تمام رجسٹرڈ یوزرز کا لائیو ڈیٹا</h3>
@@ -210,7 +194,6 @@
     </div>
 </div>
 
-<!-- ADMIN PENDING PROMOTIONS APPROVAL MODAL -->
 <div id="adminPromoApprovalModal" class="modal hidden">
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #ffd700; margin-bottom: 12px; text-align: center;">🛡️ پینڈنگ پروموشن کیمپینز</h3>
@@ -220,7 +203,6 @@
 </div>
 
 <script>
-    // EXACT FIREBASE CONFIGURATION
     const firebaseConfig = {
         apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
         authDomain: "addearn-8e4b6.firebaseapp.com",
@@ -228,18 +210,11 @@
         projectId: "addearn-8e4b6",
         storageBucket: "addearn-8e4b6.firebasestorage.app",
         messagingSenderId: "156218824451",
-        appId: "1:156218824451:web:840c8ea2afeadb32a6bb36",
-        measurementId: "G-WPR4D5571P"
+        appId: "1:156218824451:web:840c8ea2afeadb32a6bb36"
     };
 
-    // Initialize Firebase safely
-    let db;
-    try {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-    } catch(e) {
-        alert("فائر بیس انیشلائز نہیں ہو سکا: " + e.message);
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     const ADMIN_USER_ID = "ID-340387";
     const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
@@ -251,29 +226,15 @@
 
     window.onload = function() {
         generateNewCaptcha();
-        if (activePhone && db) {
-            db.ref('users/' + activePhone).once('value').then(snapshot => {
-                let user = snapshot.val();
-                if (user) {
-                    if (!user.terms_accepted) {
-                        document.getElementById('termsModal').classList.remove('hidden');
-                    } else {
-                        loadUserDashboard(activePhone);
-                    }
-                } else {
-                    localStorage.removeItem('activeUser');
-                }
-            }).catch(err => {
-                console.error(err);
-            });
+        if (activePhone) {
+            loadUserDashboard(activePhone);
         }
     };
 
     function generateNewCaptcha() {
-        num1 = Math.floor(Math.random() * 10) + 1;
-        num2 = Math.floor(Math.random() * 10) + 1;
-        let q = document.getElementById('captchaQuestion');
-        if(q) q.innerText = `${num1} + ${num2} = ?`;
+        num1 = Math.floor(Math.random() * 9) + 1;
+        num2 = Math.floor(Math.random() * 9) + 1;
+        document.getElementById('captchaQuestion').innerText = num1 + " + " + num2 + " = ?";
     }
 
     function toggleAuthMode() {
@@ -283,96 +244,123 @@
         document.getElementById('toggleText').innerText = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
     }
 
-    async function handleAuth() {
-        try {
-            let phone = document.getElementById('authPhone').value.trim();
-            let pass = document.getElementById('authPassword').value.trim();
+    // LIGHTWEIGHT FASTER AUTHENTICATION
+    function handleAuth() {
+        let phone = document.getElementById('authPhone').value.trim();
+        let pass = document.getElementById('authPassword').value.trim();
 
-            if (!phone || !pass) {
-                alert("⚠️ براہ کرم فون نمبر اور پاسورڈ دونوں درج کریں!");
-                return;
-            }
+        if (!phone || !pass) {
+            alert("⚠️ براہ کرم نمبر اور پاسورڈ دونوں درج کریں!");
+            return;
+        }
 
-            let cleanPhone = phone.replace(/[^0-9]/g, '');
-            if(!cleanPhone) {
-                alert("⚠️ درست فون نمبر درج کریں!");
-                return;
-            }
+        let cleanPhone = phone.replace(/[^0-9]/g, '');
+        let authBtn = document.getElementById('authBtn');
+        authBtn.innerText = "Connecting...";
 
-            document.getElementById('authBtn').innerText = "Processing...";
+        let userRef = db.ref('users/' + cleanPhone);
 
-            let urlParams = new URLSearchParams(window.location.search);
-            let referrerId = urlParams.get('ref') || "";
-
-            let userRef = db.ref('users/' + cleanPhone);
-            let snapshot = await userRef.once('value');
+        userRef.once('value').then(function(snapshot) {
             let user = snapshot.val();
 
             if (isLoginMode) {
                 if (user && user.password === pass) {
                     localStorage.setItem('activeUser', cleanPhone);
                     activePhone = cleanPhone;
-                    if (!user.terms_accepted) {
-                        document.getElementById('termsModal').classList.remove('hidden');
-                    } else {
-                        loadUserDashboard(cleanPhone);
-                    }
+                    alert("✅ لاگ ان کامیاب!");
+                    loadUserDashboard(cleanPhone);
                 } else {
-                    alert("❌ غلط فون نمبر یا پاسورڈ! اگر آپ نئے یوزر ہیں تو Sign Up پر کلک کریں۔");
+                    alert("❌ غلط نمبر یا پاسورڈ! اگر آپ نئے یوزر ہیں تو Sign Up منتخب کریں۔");
                 }
             } else {
                 if (user) {
-                    alert("❌ یہ فون نمبر پہلے سے رجسٹرڈ ہے! براہ کرم Login کریں۔");
+                    alert("❌ یہ نمبر پہلے سے رجسٹرڈ ہے! Login کریں۔");
                 } else {
-                    let allUsersSnap = await db.ref('users').once('value');
-                    let totalUsersCount = allUsersSnap.exists() ? allUsersSnap.numChildren() : 0;
-
-                    let generatedId = (totalUsersCount === 0) ? ADMIN_USER_ID : ('ID-' + Math.floor(100000 + Math.random() * 900000));
-                    let initialCoins = (generatedId === ADMIN_USER_ID) ? 50000 : 0;
-
+                    let newId = 'ID-' + Math.floor(100000 + Math.random() * 900000);
                     let newUser = {
-                        user_id: generatedId,
+                        user_id: newId,
                         password: pass,
-                        coins: initialCoins,
-                        referred_by: referrerId,
-                        referral_count: 0,
-                        terms_accepted: false
+                        coins: 0,
+                        referral_count: 0
                     };
 
-                    await userRef.set(newUser);
-
-                    if (referrerId && generatedId !== ADMIN_USER_ID) {
-                        let usersVal = allUsersSnap.val();
-                        if (usersVal) {
-                            for (let ph in usersVal) {
-                                if (usersVal[ph].user_id === referrerId) {
-                                    let currRef = usersVal[ph].referral_count || 0;
-                                    await db.ref('users/' + ph + '/referral_count').set(currRef + 1);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    localStorage.setItem('activeUser', cleanPhone);
-                    activePhone = cleanPhone;
-                    document.getElementById('termsModal').classList.remove('hidden');
+                    userRef.set(newUser).then(function() {
+                        localStorage.setItem('activeUser', cleanPhone);
+                        activePhone = cleanPhone;
+                        alert("✅ اکاؤنٹ کامیابی سے بن گیا!");
+                        loadUserDashboard(cleanPhone);
+                    }).catch(function(err) {
+                        alert("❌ فائر بیس ایرر: " + err.message);
+                    });
                 }
             }
-        } catch (error) {
-            alert("❌ فائر بیس ایرر: " + error.message + "\n\nاگر Permission Denied کا ایرر ہے تو Firebase Console میں ਜਾ کر Rules کو Read/Write True کریں۔");
-        } finally {
-            document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Sign Up";
-        }
-    }
-
-    function acceptTermsAndProceed() {
-        if(activePhone) {
-            db.ref('users/' + activePhone + '/terms_accepted').set(true);
-            document.getElementById('termsModal').classList.add('hidden');
-            loadUserDashboard(activePhone);
-        }
+        }).catch(function(err) {
+            alert("❌ ایرر: " + err.message);
+        }).finally(function() {
+            authBtn.innerText = isLoginMode ? "Login" : "Sign Up";
+        });
     }
 
     function loadUserDashboard(phone) {
-     
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardScreen').classList.remove('hidden');
+
+        db.ref('users/' + phone).on('value', function(snapshot) {
+            currentUserData = snapshot.val();
+            if (!currentUserData) { logout(); return; }
+
+            document.getElementById('displayUserId').innerText = currentUserData.user_id;
+            document.getElementById('coins').innerText = currentUserData.coins;
+            document.getElementById('withdrawDollars').innerText = (currentUserData.coins * (5 / 50000)).toFixed(2);
+            document.getElementById('totalRefUsers').innerText = currentUserData.referral_count || 0;
+
+            let cleanUrl = window.location.href.split('?')[0];
+            let refLink = cleanUrl + "?ref=" + currentUserData.user_id;
+            document.getElementById('refLink').innerText = refLink;
+
+            if (currentUserData.user_id === ADMIN_USER_ID) {
+                document.getElementById('adminPanel').classList.remove('hidden');
+                document.getElementById('adminMenuDataBtn').classList.remove('hidden');
+                document.getElementById('adminMenuPromoBtn').classList.remove('hidden');
+                document.getElementById('adminMyInvite').innerText = refLink;
+
+                db.ref('users').on('value', function(allSnap) {
+                    document.getElementById('adminTotalUsers').innerText = allSnap.exists() ? allSnap.numChildren() : 0;
+                });
+            }
+        });
+
+        renderPromoLinks();
+    }
+
+    function renderPromoLinks() {
+        let container = document.getElementById('userPromoLinksContainer');
+        db.ref('promos_approved').on('value', function(snapshot) {
+            let approved = snapshot.val() || {};
+            if (Object.keys(approved).length === 0) {
+                container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>اس وقت کوئی پروموشن لنک دستیاب نہیں ہے۔</p>";
+                return;
+            }
+            container.innerHTML = "";
+            Object.keys(approved).forEach(function(key) {
+                let item = approved[key];
+                let box = document.createElement('div');
+                box.className = 'promo-task-box';
+                box.innerHTML = `
+                    <div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div>
+                    <div style="font-size: 11px; color: #e9edef; line-height: 1.4; margin-bottom: 6px;">${item.desc}</div>
+                    <a href="${item.link}" target="_blank" onclick="rewardPromo()" style="display:inline-block; background:#00a884; color:#111b21; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">لنک وزٹ کریں اور جوائن کریں 🚀</a>
+                `;
+                container.appendChild(box);
+            });
+        });
+    }
+
+    function rewardPromo() {
+        if (currentUserData) {
+            db.ref('users/' + activePhone + '/coins').set(currentUserData.coins + 5);
+        }
+    }
+
+    function verifyAndStartAd() {
+        let ans = parseInt(document.getEl
