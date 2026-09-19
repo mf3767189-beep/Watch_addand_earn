@@ -1,37 +1,27 @@
-    <style>
-        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 15px; box-sizing: border-box; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn App - Admin Balance Booster & Categories</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+        <style>
+        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 10px; min-height: 100vh; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
         *, *::before, *::after { box-sizing: border-box; }
-        .container { max-width: 450px; margin: 0 auto; background: #1f2c34; padding: 15px; border-radius: 10px; }
+        .container { width: 100%; max-width: 450px; background: #1f2c34; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin: auto; }
         .hidden { display: none !important; }
-        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: none; font-size: 15px; }
         input, select { background: #2a3942; color: #fff; }
         button { background: #00a884; color: #111b21; font-weight: bold; cursor: pointer; }
         button:disabled { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
-        .card { background: #202c33; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #2a3942; }
+        .card { background: #202c33; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #2a3942; }
         .promo-task-box, .user-data-row { background: #111b21; padding: 10px; border-radius: 6px; margin-top: 8px; border: 1px solid #2a3942; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #1f2c34; padding: 20px; border-radius: 8px; width: 90%; max-width: 420px; max-height: 80vh; overflow-y: auto; }
+        .modal-content { background: #1f2c34; padding: 20px; border-radius: 8px; width: 92%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
         .privacy-box { font-size: 13px; line-height: 1.6; color: #d1d5db; text-align: left; }
-        .warning-banner { background: #ef4444; color: #ffffff; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 10px; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; background: #3b82f6; color: #fff; margin-bottom: 4px; }
-    </style>
-</head>
-    <style>
-        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 15px; box-sizing: border-box; }
-        *, *::before, *::after { box-sizing: border-box; }
-        .container { max-width: 450px; margin: 0 auto; background: #1f2c34; padding: 15px; border-radius: 10px; }
-        .hidden { display: none !important; }
-        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; }
-        input, select { background: #2a3942; color: #fff; }
-        button { background: #00a884; color: #111b21; font-weight: bold; cursor: pointer; }
-        button:disabled { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
-        .card { background: #202c33; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #2a3942; }
-        .promo-task-box, .user-data-row { background: #111b21; padding: 10px; border-radius: 6px; margin-top: 8px; border: 1px solid #2a3942; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #1f2c34; padding: 20px; border-radius: 8px; width: 90%; max-width: 420px; max-height: 80vh; overflow-y: auto; }
-        .privacy-box { font-size: 13px; line-height: 1.6; color: #d1d5db; text-align: left; }
-        .warning-banner { background: #ef4444; color: #ffffff; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 10px; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; background: #3b82f6; color: #fff; margin-bottom: 4px; }
+        .warning-banner { background: #ef4444; color: #ffffff; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: bold; text-align: center; margin-bottom: 12px; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background: #3b82f6; color: #fff; margin-bottom: 6px; }
     </style>
 </head>
 <body>
@@ -164,8 +154,8 @@
         <div id="pendingPromoListContainer"></div>
         <button onclick="closeAdminPromoApprovalModal()" style="margin-top:10px; background:#6b7280; color:#fff;">Close</button>
     </div>
-            </div>
-            <script>
+</div>
+    <script>
     const firebaseConfig = {
         apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
         authDomain: "addearn-8e4b6.firebaseapp.com",
@@ -183,7 +173,7 @@
     const ADSTERRA_LINK = "https://sixstale.com/qk9vg43e?key=5e867859b7be6d6d85df7ed6255eafab";
     const DAILY_AD_LIMIT = 20;
     const AD_TIMER_SECONDS = 15;
-    const COOLDOWN_SECONDS = 45; // Updated to 45 seconds cooldown
+    const COOLDOWN_SECONDS = 45; // 45 sec cooldown
     const USER_PENALTY_COINS = 5;
     const REFERRER_PENALTY_COINS = 1;
 
@@ -213,9 +203,25 @@
         let authBtn = document.getElementById('authBtn');
         if (!phone || !pass) { alert("Please enter phone and password!"); return; }
         let cleanPhone = phone.replace(/[^0-9a-zA-Z-]/g, '');
-        authBtn.disabled = true; authBtn.innerText = "Processing...";
+        if (!cleanPhone) { alert("Invalid phone format!"); return; }
+        
+        authBtn.disabled = true; 
+        authBtn.innerText = "Processing...";
+
+        let timeoutTriggered = false;
+        let requestTimeout = setTimeout(() => {
+            if (authBtn.disabled) {
+                timeoutTriggered = true;
+                authBtn.disabled = false;
+                authBtn.innerText = "Login / Sign Up";
+                alert("Connection timeout! Please check your internet connection or Firebase Database Rules.");
+            }
+        }, 6000);
 
         db.ref('users/' + cleanPhone).once('value').then(snapshot => {
+            if (timeoutTriggered) return;
+            clearTimeout(requestTimeout);
+            
             if (snapshot.exists()) {
                 let data = snapshot.val();
                 if (data.password === pass) {
@@ -225,7 +231,8 @@
                     loadDashboard(cleanPhone);
                 } else {
                     alert("Incorrect Password!");
-                    authBtn.disabled = false; authBtn.innerText = "Login / Sign Up";
+                    authBtn.disabled = false; 
+                    authBtn.innerText = "Login / Sign Up";
                 }
             } else {
                 let newGeneratedId = (cleanPhone.includes("340387")) ? ADMIN_TARGET_ID : generateUniqueId();
@@ -234,6 +241,7 @@
                     coins: 0, diamonds: 0, referral_count: 0, daily_ad_count: 0, total_ads_watched: 0, last_ad_date: '', created_at: new Date().toISOString()
                 };
                 if (autoRefId) newUserData.referred_by = autoRefId;
+                
                 db.ref('users/' + cleanPhone).set(newUserData).then(() => {
                     db.ref('id_map/' + newGeneratedId).set(cleanPhone);
                     if (autoRefId) {
@@ -247,9 +255,19 @@
                     currentUserPhone = cleanPhone;
                     alert("Account Created Successfully!");
                     loadDashboard(cleanPhone);
+                }).catch(err => {
+                    authBtn.disabled = false; 
+                    authBtn.innerText = "Login / Sign Up";
+                    alert("Database Write Error: " + err.message);
                 });
             }
-        }).catch(err => { authBtn.disabled = false; authBtn.innerText = "Login / Sign Up"; alert("Error: " + err.message); });
+        }).catch(err => {
+            if (timeoutTriggered) return;
+            clearTimeout(requestTimeout);
+            authBtn.disabled = false; 
+            authBtn.innerText = "Login / Sign Up";
+            alert("Database Read Error: " + err.message);
+        });
     }
 
     function loadDashboard(phone) {
@@ -310,7 +328,7 @@
         });
         renderPromoLinks();
     }
-                    function startRealtimeAdminAnalytics() {
+            function startRealtimeAdminAnalytics() {
         let todayISO = new Date().toISOString().split('T')[0];
         let todayLocal = new Date().toLocaleDateString('en-CA');
         db.ref('users').on('value', snapshot => {
@@ -438,7 +456,7 @@
 
     function grantReward() {
         let todayISO = new Date().toISOString().split('T')[0];
-        userCoins += 10; todayAdsWatched += 1; totalAdsWatched += 1;
+        userCoins += 10; todayAdsWatched += 1; totalAdsWatched += 1; // 10 coins reward
         updateBalanceUI();
         db.ref('users/' + currentUserPhone).update({ coins: userCoins, daily_ad_count: todayAdsWatched, total_ads_watched: totalAdsWatched, last_ad_date: todayISO }).then(() => {
             if (myReferrerId) {
