@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AdEarn Rewards - Official Dashboard</title>
+    <title>AdEarn Rewards - Dashboard</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #0b141a; color: #e9edef; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
@@ -19,7 +19,6 @@
         .btn-withdraw { background: #2563eb; color: white; }
         .btn-support { background: #0088cc; color: white; }
         .btn-copy { background: #eab308; color: #111b21; margin-top: 10px; }
-        .btn:disabled { background: #2a3942; color: #8696a0; cursor: not-allowed; }
         input, select, textarea { width: 100%; padding: 11px; margin: 8px 0; border: 1px solid #2a3942; border-radius: 8px; background: #111b21; color: #fff; font-size: 14px; outline: none; }
         textarea { resize: vertical; min-height: 70px; }
         .link-text { color: #00a884; cursor: pointer; font-size: 13px; margin-top: 10px; display: inline-block; }
@@ -54,7 +53,6 @@
         <input type="password" id="authPassword" placeholder="Password">
         <button class="btn" id="authBtn" onclick="handleAuth()">Login</button>
         <p class="link-text" onclick="toggleAuthMode()" id="toggleText">Don't have an account? Sign Up</p>
-        <p class="link-text" style="color: #ef4444; margin-top: 15px;" onclick="resetAllData()">⚠️ ری سیٹ تمام ڈیٹا (Reset All Data)</p>
     </div>
 
     <!-- 2. DASHBOARD SCREEN -->
@@ -94,7 +92,7 @@
                 <h2>🪙 <span id="coins">0</span> Coins</h2>
             </div>
             <div style="font-size: 12px; color: #8696a0; line-height: 1.5;">
-                ⚡ 1 Valid Ad = 10 Coins (Max 25 Ads/Day) <br>
+                ⚡ 1 Valid Ad = 10 Coins <br>
                 🤝 Referral Bonus = 10% Commission
             </div>
         </div>
@@ -112,9 +110,9 @@
             <button class="btn" id="watchBtn" onclick="verifyAndStartAd()">Watch Ad & Earn 🪙</button>
         </div>
 
-        <!-- APPROVED USER PROMOTION LINKS SECTION -->
+        <!-- PROMOTION LINKS SECTION -->
         <div class="card" style="text-align: right; direction: rtl;">
-            <h3 style="color: #ffd700; margin-bottom: 8px; text-align: center;">🌐 ممبرز کی پروموٹ شدہ لنکس (Join & Earn)</h3>
+            <h3 style="color: #ffd700; margin-bottom: 8px; text-align: center;">🌐 ممبرز کی پروموٹ شدہ لنکس</h3>
             <div id="userPromoLinksContainer">
                 <p style="font-size: 12px; color: #8696a0; text-align: center;">اس وقت کوئی پروموشن لنک دستیاب نہیں ہے۔</p>
             </div>
@@ -130,7 +128,7 @@
             <button class="btn btn-copy" onclick="copyReferralLink()">Copy Referral Link 📋</button>
         </div>
 
-        <!-- WITHDRAW SECTION WITH $5 LIMIT -->
+        <!-- WITHDRAW SECTION -->
         <div class="card">
             <h3 style="color: #00a884;">Withdraw ($ USD)</h3>
             <div style="font-size: 13px; color: #ffd700; margin-bottom: 4px;">Available Balance Value: <b>$<span id="withdrawDollars">0.00</span> USD</b></div>
@@ -158,7 +156,7 @@
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #00a884; margin-bottom: 12px; text-align: center;">📜 پرائیویسی اور اصول و ضوابط</h3>
         <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 15px;">
-            1. ہر ایڈ کو لازماً پورا 15 سیکنڈ دیکھਣਾ ہوگا۔<br>
+            1. ہر ایڈ کو لازماً پورا دیکھਣਾ ہوگا۔<br>
             2. اصولوں کی خلاف ورزی پر اکاؤنٹ بلاک ہو سکتا ہے۔
         </p>
         <button class="btn" onclick="acceptTermsAndProceed()">میں اصول تسلیم کرتا ہوں ✅</button>
@@ -189,8 +187,7 @@
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #00a884; margin-bottom: 10px; text-align: center;">📜 پرائیویسی اور اصول</h3>
         <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 10px;">
-            1. روزانہ کے 25 ایڈز دیکھ سکتے ہیں۔<br>
-            2. منیمم ودڈرا لمٹ $5 ہے۔
+            1. منیمم ودڈرا لمٹ $5 ہے۔
         </p>
         <button class="btn" onclick="closePrivacyModal()">بند کریں ❌</button>
     </div>
@@ -291,10 +288,7 @@
                     coins: initialCoins,
                     referred_by: referrerId,
                     referral_count: 0,
-                    terms_accepted: false,
-                    daily_ad_count: 0,
-                    total_ads_watched: 0,
-                    last_ad_date: ""
+                    terms_accepted: false
                 };
 
                 if (referrerId && generatedId !== ADMIN_USER_ID) {
@@ -309,7 +303,6 @@
                 localStorage.setItem('users_database', JSON.stringify(db));
                 localStorage.setItem('activeUser', cleanPhone);
                 activePhone = cleanPhone;
-                alert("✅ اکاؤنٹ کامیابی سے بن گیا ہے!");
                 document.getElementById('termsModal').classList.remove('hidden');
             }
         }
@@ -366,4 +359,11 @@
             container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>اس وقت کوئی پروموشن لنک دستیاب نہیں ہے۔</p>";
             return;
         }
-            
+        container.innerHTML = "";
+        approved.forEach((item, index) => {
+            let box = document.createElement('div');
+            box.className = 'promo-task-box';
+            box.innerHTML = `
+                <div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div>
+                <div style="font-size: 11px; color: #e9edef; line-height: 1.4; margin-bottom: 6px;">${item.desc}</div>
+                <a href="${item.link}" target="_blank" onclick="rewardPromo(
