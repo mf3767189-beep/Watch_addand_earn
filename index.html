@@ -379,5 +379,294 @@
 
                 todayAdsWatched = (val.last_ad_date === todayDate) ? (Number(val.daily_ad_count) || 0) : 0;
                 totalAdsWatched = Number(val.total_ads_watched) || 0;
+                                updateBalanceUI();
+                document.getElementById('displayUserId').innerText = userId;
+                document.getElementById('totalRefUsers').innerText = refCount;
+
+                let currentCleanUrl = window.location.href.split('?')[0];
+                let inviteLink = `${currentCleanUrl}?ref=${userId}`;
+                document.getElementById('refLink').innerText = inviteLink;
+                    
+                                updateBalanceUI();
+                document.getElementById('displayUserId').innerText = userId;
+                document.getElementById('totalRefUsers').innerText = refCount;
+
+                let currentCleanUrl = window.location.href.split('?')[0];
+                let inviteLink = `${currentCleanUrl}?ref=${userId}`;
+                document.getElementById('refLink').innerText = inviteLink;
+
+                if (userId === ADMIN_USER_ID) {
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    document.getElementById('adminMenuDataBtn').classList.remove('hidden');
+                    document.getElementById('adminMenuPromoBtn').classList.remove('hidden');
+                    document.getElementById('adminMyInvite').innerText = inviteLink;
+
+                    db.ref('users').on('value', function(allSnap) {
+                        document.getElementById('adminTotalUsers').innerText = allSnap.exists() ? allSnap.numChildren() : 0;
+                    });
+                }
+
+                let btn = document.getElementById('watchBtn');
+                if (!isBusy) {
+                    if (todayAdsWatched >= DAILY_AD_LIMIT) {
+                        btn.disabled = true;
+                        btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                    } else {
+                        btn.disabled = false;
+                        btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                    }
+                }
+            }
+        });
+
+        renderPromoLinks();
+    }
+
+    function renderPromoLinks() {
+        let container = document.getElementById('userPromoLinksContainer');
+        db.ref('promos_approved').on('value', function(snapshot) {
+            let approved = snapshot.val() || {};
+            if (Object.keys(approved).length === 0) {
+                container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>No promoted links available right now.</p>";
+                return;
+            }
+            container.innerHTML = "";
+            Object.keys(approved).forEach(function(key) {
+                let item = approved[key];
+                let box = document.createElement('div');
+                box.className = 'promo-task-box';
+                box.innerHTML = `
+                    <div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div>
+                    <div style="font-size: 11px; color: #e9edef; line-height: 1.4; margin-bottom: 6px;">${item.desc}</div>
+                    <a href="${item.link}" target="_blank" onclick="rewardPromo()" style="display:inline-block; background:#00a884; color:#111b21; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">Visit Link 🚀</a>
+                `;
+                container.appendChild(box);
+            });
+        });
+    }
+
+    function rewardPromo() {
+        if (currentUserPhone && db) {
+            userCoins += 5;
+            db.ref('users/' + currentUserPhone + '/coins').set(userCoins);
+        }
+    }
+
+    function updateBalanceUI() {
+        document.getElementById('coins').innerText = userCoins;
+        document.getElementById('dollars').innerText = (userCoins * (5 / 30000)).toFixed(2);
+    }
+
+    function startAdsterraTask() {
+        if (todayAdsWatched >= DAILY_AD_LIMIT || isBusy) {
+            return;
+        }
+
+        let ans = parseInt(document.getElementById('captchaAnswer').value);
+        if (isNaN(ans) || ans !== (num1 + num2)) {
+            alert("❌ Incorrect Captcha! Please enter the correct sum.");
+            generateNewCaptcha();
+            return;
+        }
+
+        isBusy = true;
+        window.open(ADSTERRA_LINK, '_blank');
+
+        let btn = document.getElementById('watchBtn');
+        let timeLeft = AD_TIMER_SECONDS;
+        btn.disabled = true;
+        btn.innerText = `Ad Running... (${timeLeft}s)`;
+
+        let timerInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                btn.innerText = `Ad Running... (${timeLeft}s)`;
+            } else {
+                clearInterval(timerInterval);
+                grantReward();
+                startCooldownTimer();
+            }
+        }, 1000);
+    }
+
+    function startCooldownTimer() {
+        let btn = document.getElementById('watchBtn');
+        let coolDownLeft = COOLDOWN_SECONDS;
+
+        btn.disabled = true;
+        btn.innerText = `⏳ Next Ad in ${coolDownLeft}s`;
+
+        let coolInterval = setInterval(() => {
+            coolDownLeft--;
+            if (coolDownLeft > 0) {
+                btn.innerText = `⏳ Next Ad in ${coolDownLeft}s`;
+            } else {
+                clearInterval(coolInterval);
+                isBusy = false;
+                generateNewCaptcha();
+                document.getElementById('captchaAnswer').value = '';
+                
+                if (todayAdsWatched >= DAILY_AD_LIMIT) {
+                    btn.disabled = true;
+                    btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                } else {
+                    btn.disabled = false;
+                    btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                }
+            }
+        }, 1000);
+    }
+
+    function grantReward() {
+        let todayDate = new Date().toISOString().split('T')[0];
+
+        userCoins += 10;
+        todayAdsWatched += 1;
+        totalAdsWatched += 1;
+        updateBalanceUI();
+
+        db.ref('users/' + currentUserPhone).update({
+            coins: userCoins,
+            daily_ad_count: todayAdsWatched,
+            total_ads_watched: totalAdsWatched,
+            last_ad_date: todayDate
+        }).then(() => {
+            if (myReferrerId) {
+                db.ref('id_map/' + myReferrerId).once('value', refSnap => {
+                    if (refSnap.exists()) {
+                        let refPhone = refSnap.val();
+                        db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
+                            return (Number(refCoins) || 0) + 1;
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    function submitPromotionRequest() {
+        let title = document.getElementById('promoTitle').value.trim();
+        let desc = document.getElementById('promoDesc').value.trim();
+        let link = document.getElementById('promoLink').value.trim();
+        let depositMethod = document.getElementById('depositMethod').value;
+        let amount = Number(document.getElementById('depositAmount').value);
+        let txId = document.getElementById('transactionId').value.trim();
+
+        if (!title || !desc || !link || !amount || !txId) {
+            alert("Please fill all fields!");
+            return;
+        }
+
+        db.ref('promos_pending').push({
+            user_id: userId,
+            title: title, desc: desc, link: link, depositMethod: depositMethod, amount: amount, txId: txId
+        });
+
+        closePromotionModal();
+        alert("✅ Promotion request submitted for admin approval!");
+    }
+
+    function toggleDropdown() {
+        let m = document.getElementById('dropdownMenu');
+        m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function openPromotionModal() { document.getElementById('promotionModal').classList.remove('hidden'); toggleDropdown(); }
+    function closePromotionModal() { document.getElementById('promotionModal').classList.add('hidden'); }
+    function openPrivacyModal() { document.getElementById('privacyModal').classList.remove('hidden'); toggleDropdown(); }
+    function closePrivacyModal() { document.getElementById('privacyModal').classList.add('hidden'); }
+
+    function openAllUsersDataModal() {
+        toggleDropdown();
+        db.ref('users').once('value').then(function(snapshot) {
+            let dbVal = snapshot.val() || {};
+            let container = document.getElementById('allUsersListContainer');
+            container.innerHTML = "";
+            Object.keys(dbVal).forEach(function(ph) {
+                let u = dbVal[ph];
+                container.innerHTML += `<div class="user-data-row">🆔 ID: <b>${u.user_id || 'N/A'}</b> | Ph: ${ph}<br>Coins: <b>${u.coins || 0}</b></div>`;
+            });
+            document.getElementById('allUsersDataModal').classList.remove('hidden');
+        });
+    }
+    function closeAllUsersDataModal() { document.getElementById('allUsersDataModal').classList.add('hidden'); }
+
+    function openAdminPromoApprovalModal() {
+        toggleDropdown();
+        db.ref('promos_pending').once('value').then(function(snapshot) {
+            let pending = snapshot.val() || {};
+            let container = document.getElementById('pendingPromoListContainer');
+            container.innerHTML = "";
+            if (Object.keys(pending).length === 0) {
+                container.innerHTML = "<p style='text-align:center;'>No pending promotions.</p>";
+            } else {
+                Object.keys(pending).forEach(function(key) {
+                    let item = pending[key];
+                    container.innerHTML += `
+                        <div class="user-data-row">
+                            🆔 ${item.user_id}<br>📌 <b>${item.title}</b><br>💳 ${item.depositMethod} (${item.amount} PKR) [TX: ${item.txId}]<br>
+                            <button class="btn" style="background:#10b981; color:#fff; padding:6px; margin-top:5px;" onclick="approvePromo('${key}')">Approve ✅</button>
+                        </div>`;
+                });
+            }
+            document.getElementById('adminPromoApprovalModal').classList.remove('hidden');
+        });
+    }
+    function closeAdminPromoApprovalModal() { document.getElementById('adminPromoApprovalModal').classList.add('hidden'); }
+
+    function approvePromo(key) {
+        db.ref('promos_pending/' + key).once('value').then(function(snapshot) {
+            let item = snapshot.val();
+            if (item) {
+                db.ref('promos_approved').push(item);
+                db.ref('promos_pending/' + key).remove();
+                alert("✅ Promotion approved!");
+                openAdminPromoApprovalModal();
+            }
+        });
+    }
+
+    function copyReferralLink() {
+        let linkText = document.getElementById('refLink').innerText;
+        navigator.clipboard.writeText(linkText);
+        alert("📋 Referral Link copied to clipboard!");
+    }
+
+    function withdrawCoins() {
+        let method = document.getElementById('method').value;
+        let acc = document.getElementById('accountNo').value.trim();
+        
+        if (!acc) {
+            alert("Enter your account number/Binance ID!");
+            return;
+        }
+        if (userCoins < 30000 && userId !== ADMIN_USER_ID) {
+            alert("Minimum withdrawal is 30,000 Coins ($5.00)!");
+            return;
+        }
+
+        if (userId !== ADMIN_USER_ID) {
+            userCoins -= 30000;
+            updateBalanceUI();
+            db.ref('users/' + currentUserPhone + '/coins').set(userCoins);
+        }
+        
+        let msg = `Withdraw Request:\n🆔 ID: ${userId}\n💳 Method: ${method}\n🏦 Acc: ${acc}`;
+        window.open(`https://t.me/Ali69291?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function openSupport() {
+        window.open(`https://t.me/Ali69291?text=${encodeURIComponent("Help needed for ID: " + userId)}`, '_blank');
+    }
+
+    function logout() {
+        localStorage.removeItem('activeUser');
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
+
 
               
