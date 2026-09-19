@@ -1,275 +1,335 @@
-<!-- Admin Panel Section inside Dashboard -->
-<div id="adminPanel" class="card hidden" style="border: 1px solid #10b981; background: #182229;">
-    <h3 style="color: #10b981; margin-top: 0; display: flex; align-items: center; gap: 8px;">
-        👑 Admin Control Center
-    </h3>
-    
-    <!-- Admin Live Analytics Grid -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 12px;">
-        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #3b82f6;">
-            👥 <b>Total Users:</b> <br><span id="adminTotalUsers" style="font-size: 16px; font-weight: bold;">0</span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn App</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 15px; }
+        .container { max-width: 450px; margin: 0 auto; background: #1f2c34; padding: 15px; border-radius: 10px; }
+        .hidden { display: none !important; }
+        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; box-sizing: border-box; }
+        input, select { background: #2a3942; color: #fff; }
+        button { background: #00a884; color: #111b21; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
+        .card { background: #202c33; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #2a3942; }
+        .promo-task-box, .user-data-row { background: #111b21; padding: 10px; border-radius: 6px; margin-top: 8px; border: 1px solid #2a3942; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #1f2c34; padding: 20px; border-radius: 8px; width: 90%; max-width: 420px; max-height: 80vh; overflow-y: auto; }
+        .privacy-box { font-size: 13px; line-height: 1.6; color: #d1d5db; text-align: left; }
+        .warning-banner { background: #ef4444; color: #ffffff; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="penaltyAlert" class="warning-banner hidden"></div>
+    <div id="authScreen">
+        <h2>Login / Sign Up</h2>
+        <input type="tel" id="phone" placeholder="Phone / Admin Phone">
+        <input type="password" id="pass" placeholder="Password">
+        <button id="authBtn" onclick="handleAuth()">Login / Sign Up</button>
+    </div>
+    <div id="dashboardScreen" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>Dashboard</h3>
+            <button onclick="toggleDropdown()" style="width:auto; padding:5px 12px; background:#2a3942; color:#fff;">☰ Menu</button>
         </div>
-        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #10b981;">
-            🟢 <b>Active Today:</b> <br><span id="adminActiveUsers" style="font-size: 16px; font-weight: bold; color: #10b981;">0</span>
+        <div id="dropdownMenu" class="hidden" style="background:#2a3942; padding:10px; border-radius:6px; margin-bottom:10px;">
+            <button id="adminMainBtn" class="hidden" onclick="openAdminDashboardModal()" style="background:#10b981; color:#fff;">👑 Admin Live Dashboard</button>
+            <button onclick="openPromotionModal()">Promote Link</button>
+            <button onclick="openPrivacyModal()">Privacy Policy</button>
+            <button onclick="logout()" style="background:#ef4444; color:#fff;">Logout</button>
         </div>
-        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
-            🔴 <b>Inactive Today:</b> <br><span id="adminInactiveUsers" style="font-size: 16px; font-weight: bold; color: #ef4444;">0</span>
+        <div class="card">
+            <p>🆔 User ID: <span id="displayUserId">...</span></p>
+            <p>🪙 Coins: <b id="coins">0</b></p>
+            <p>💵 Balance: <b>$<span id="dollars">0.00</span></b></p>
         </div>
-        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #f59e0b;">
-            🎬 <b>Today's Ads:</b> <br><span id="adminTodayAds" style="font-size: 16px; font-weight: bold; color: #f59e0b;">0</span>
+        <div class="card">
+            <h4>Watch Ads & Earn</h4>
+            <p>Solve Captcha: <span id="captchaQuestion">...</span></p>
+            <input type="number" id="captchaAnswer" placeholder="Enter answer">
+            <button id="watchBtn" onclick="startAdsterraTask()">Watch Ad & Earn</button>
         </div>
-        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #8b5cf6;">
-            💰 <b>Total Coins:</b> <br><span id="adminTotalCoins" style="font-size: 16px; font-weight: bold;">0</span>
+        <div class="card">
+            <h4>🤝 Invite & Earn</h4>
+            <p>👥 Total Invited: <b id="totalRefUsers">0</b></p>
+            <p>🔗 Link: <span id="refLink" style="word-break:break-all; font-size:12px; color:#00a884;">...</span></p>
+            <button onclick="copyReferralLink()">Copy Referral Link</button>
         </div>
-        <div style="background: #202c33; padding: 10px; border-radius: 6px; border-left: 3px solid #ec4899;">
-            📢 <b>Pending Promos:</b> <br><span id="adminPendingPromos" style="font-size: 16px; font-weight: bold;">0</span>
+        <div class="card">
+            <h4>📢 Promoted Tasks</h4>
+            <div id="userPromoLinksContainer"></div>
+        </div>
+        <div class="card">
+            <h4>💸 Withdraw Earnings</h4>
+            <p style="font-size: 12px; color: #a0aec0;">Min: $5.00 (50k Coins)</p>
+            <select id="method"><option value="Easypaisa">Easypaisa</option><option value="Jazzcash">Jazzcash</option><option value="Binance">Binance Pay ID</option></select>
+            <input type="text" id="accountNo" placeholder="Account Number / Binance ID">
+            <button onclick="withdrawDollars()">Withdraw Dollars ($)</button>
+            <button onclick="openSupport()" style="background:#3b82f6; color:#fff; margin-top:5px;">Contact Support</button>
         </div>
     </div>
+    </div>
+    <div id="adminDashboardModal" class="modal hidden">
+    <div class="modal-content">
+        <h3 style="color:#10b981; margin-top:0;">👑 Live Admin Analytics</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 12px;">
+            <div style="background: #202c33; padding: 10px; border-radius: 6px;">👥 <b>Users:</b> <br><span id="adminTotalUsers" style="font-size: 16px;">0</span></div>
+            <div style="background: #202c33; padding: 10px; border-radius: 6px;">🟢 <b>Active:</b> <br><span id="adminActiveUsers" style="font-size: 16px; color: #10b981;">0</span></div>
+            <div style="background: #202c33; padding: 10px; border-radius: 6px;">🔴 <b>Inactive:</b> <br><span id="adminInactiveUsers" style="font-size: 16px; color: #ef4444;">0</span></div>
+            <div style="background: #202c33; padding: 10px; border-radius: 6px;">🎬 <b>Ads Today:</b> <br><span id="adminTodayAds" style="font-size: 16px; color: #f59e0b;">0</span></div>
+            <div style="background: #202c33; padding: 10px; border-radius: 6px;">🎥 <b>Total Ads:</b> <br><span id="adminLifetimeAds" style="font-size: 16px; color: #8b5cf6;">0</span></div>
+            <div style="background: #202c33; padding: 10px; border-radius: 6px;">💰 <b>Coins:</b> <br><span id="adminTotalCoins" style="font-size: 16px;">0</span></div>
+        </div>
+        <button onclick="runRetroactivePenaltyCheck()" style="background: #dc2626; color: #fff; margin-bottom: 8px;">🚨 Apply Penalty on Old Users</button>
+        <button onclick="openAllUsersDataModal()" style="background: #3b82f6; color: #fff; margin-bottom: 8px;">🔍 View All Users</button>
+        <button onclick="openAdminPromoApprovalModal()" style="background: #f59e0b; color: #111; margin-bottom: 8px;">📢 Pending Promos</button>
+        <button onclick="closeAdminDashboardModal()" style="background: #6b7280; color: #fff;">Close</button>
+    </div>
+</div>
+<div id="promotionModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Submit Promotion</h3>
+        <input type="text" id="promoTitle" placeholder="Title">
+        <input type="text" id="promoDesc" placeholder="Description">
+        <input type="url" id="promoLink" placeholder="Link URL">
+        <select id="depositMethod"><option value="Easypaisa">Easypaisa</option><option value="Jazzcash">Jazzcash</option></select>
+        <input type="number" id="depositAmount" placeholder="Amount Paid (PKR)">
+        <input type="text" id="transactionId" placeholder="Transaction ID">
+        <button onclick="submitPromotionRequest()">Submit</button>
+        <button onclick="closePromotionModal()" style="background:#6b7280; color:#fff;">Close</button>
+    </div>
+</div>
+<div id="privacyModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>📜 Terms & Privacy</h3>
+        <div class="privacy-box">
+            <p>सिक्के कमाने के लिए पूरे 15 सेकंड विज्ञापन देखना ज़रूरी है। न्यूनतम विथड्रॉवल $5.00 है।</p>
+        </div>
+        <button onclick="closePrivacyModal()" style="margin-top:15px;">I Understand</button>
+    </div>
+</div>
+<div id="allUsersDataModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>All Users Data</h3>
+        <div id="allUsersListContainer"></div>
+        <button onclick="closeAllUsersDataModal()" style="margin-top:10px; background:#6b7280; color:#fff;">Close</button>
+    </div>
+</div>
+<div id="adminPromoApprovalModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Pending Promotions</h3>
+        <div id="pendingPromoListContainer"></div>
+        <button onclick="closeAdminPromoApprovalModal()" style="margin-top:10px; background:#6b7280; color:#fff;">Close</button>
+    </div>
+</div>
+    <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
+        authDomain: "addearn-8e4b6.firebaseapp.com",
+        databaseURL: "https://addearn-8e4b6-default-rtdb.firebaseio.com",
+        projectId: "addearn-8e4b6",
+        storageBucket: "addearn-8e4b6.firebasestorage.app",
+        messagingSenderId: "156218824451",
+        appId: "1:156218824451:web:840c8ea2afeadb32a6bb36"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    <!-- Admin Action Buttons -->
-    <button onclick="openAllUsersDataModal()" style="background: #3b82f6; color: #fff; margin-bottom: 8px;">
-        🔍 View All Users & Manage Coins
-    </button>
-    <button onclick="openAdminPromoApprovalModal()" style="background: #f59e0b; color: #111; margin-bottom: 8px;">
-        📢 Pending Promotions Approval
-    </button>
-    </div>
-        const ADMIN_USER_ID = "ID-340387"; // Your Admin User ID
+    const ADMIN_TARGET_ID = "ID-340387";
+    const ADMIN_PHONE_KEY = "340387";
+    const ADSTERRA_LINK = "https://example.com";
+    const DAILY_AD_LIMIT = 20;
+    const AD_TIMER_SECONDS = 15;
+    const COOLDOWN_SECONDS = 5;
+    const USER_PENALTY_COINS = 5;
+    const REFERRER_PENALTY_COINS = 1;
+
+    let currentUserPhone = '', userId = '', userCoins = 0, todayAdsWatched = 0, totalAdsWatched = 0;
+    let myReferrerId = null, autoRefId = null, isBusy = false, num1 = 0, num2 = 0, adInterval = null;
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        autoRefId = urlParams.get('ref');
+        generateNewCaptcha();
+        let active = localStorage.getItem('activeUser');
+        if (active) { currentUserPhone = active; loadDashboard(active); }
+    };
+
+    function generateNewCaptcha() {
+        num1 = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * 10) + 1;
+        let capElem = document.getElementById('captchaQuestion');
+        if (capElem) capElem.innerText = `${num1} + ${num2} = ?`;
+    }
+
+    function generateUniqueId() { return 'U' + Math.floor(100000 + Math.random() * 900000); }
+
+    function handleAuth() {
+        let phone = document.getElementById('phone').value.trim();
+        let pass = document.getElementById('pass').value.trim();
+        let authBtn = document.getElementById('authBtn');
+        if (!phone || !pass) { alert("Please enter phone and password!"); return; }
+        let cleanPhone = phone.replace(/[^0-9a-zA-Z-]/g, '');
+        authBtn.disabled = true; authBtn.innerText = "Processing...";
+
+        db.ref('users/' + cleanPhone).once('value').then(snapshot => {
+            if (snapshot.exists()) {
+                let data = snapshot.val();
+                if (data.password === pass) {
+                    localStorage.setItem('activeUser', cleanPhone);
+                    currentUserPhone = cleanPhone;
+                    alert("Login Successful!");
+                    loadDashboard(cleanPhone);
+                } else {
+                    alert("Incorrect Password!");
+                    authBtn.disabled = false; authBtn.innerText = "Login / Sign Up";
+                }
+            } else {
+                let newGeneratedId = (cleanPhone.includes("340387")) ? ADMIN_TARGET_ID : generateUniqueId();
+                let newUserData = {
+                    user_id: newGeneratedId, password: pass, phone: cleanPhone,
+                    coins: 0, referral_count: 0, daily_ad_count: 0, total_ads_watched: 0, last_ad_date: '', created_at: new Date().toISOString()
+                };
+                if (autoRefId) newUserData.referred_by = autoRefId;
+                db.ref('users/' + cleanPhone).set(newUserData).then(() => {
+                    db.ref('id_map/' + newGeneratedId).set(cleanPhone);
+                    if (autoRefId) {
+                        db.ref('id_map/' + autoRefId).once('value', refSnap => {
+                            if (refSnap.exists()) {
+                                db.ref('users/' + refSnap.val() + '/referral_count').transaction(c => (Number(c) || 0) + 1);
+                            }
+                        });
+                    }
+                    localStorage.setItem('activeUser', cleanPhone);
+                    currentUserPhone = cleanPhone;
+                    alert("Account Created Successfully!");
+                    loadDashboard(cleanPhone);
+                });
+            }
+        }).catch(err => { authBtn.disabled = false; authBtn.innerText = "Login / Sign Up"; alert("Error: " + err.message); });
+    }
 
     function loadDashboard(phone) {
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('dashboardScreen').classList.remove('hidden');
-
-        let todayDate = new Date().toISOString().split('T')[0];
+        let todayISO = new Date().toISOString().split('T')[0];
 
         db.ref('users/' + phone).on('value', snapshot => {
             let val = snapshot.val();
             if (val) {
                 if (!val.user_id) {
-                    let newGenId = generateUniqueId();
+                    let newGenId = (phone.includes("340387")) ? ADMIN_TARGET_ID : generateUniqueId();
                     db.ref('users/' + phone).update({ user_id: newGenId, referral_count: 0 });
                     db.ref('id_map/' + newGenId).set(phone);
                     userId = newGenId;
-                } else {
-                    userId = val.user_id;
-                }
-
+                } else { userId = val.user_id; }
                 userCoins = Number(val.coins) || 0;
                 myReferrerId = val.referred_by || null;
                 let refCount = Number(val.referral_count) || 0;
-
-                todayAdsWatched = (val.last_ad_date === todayDate) ? (Number(val.daily_ad_count) || 0) : 0;
+                todayAdsWatched = (val.last_ad_date === todayISO) ? (Number(val.daily_ad_count) || 0) : 0;
                 totalAdsWatched = Number(val.total_ads_watched) || 0;
 
+                if (val.has_penalty_msg) {
+                    let pAlert = document.getElementById('penaltyAlert');
+                    pAlert.innerText = val.penalty_msg || "⚠️ Penalty applied!";
+                    pAlert.classList.remove('hidden');
+                }
                 updateBalanceUI();
                 document.getElementById('displayUserId').innerText = userId;
                 document.getElementById('totalRefUsers').innerText = refCount;
-
-                let currentCleanUrl = window.location.href.split('?')[0];
-                let inviteLink = `${currentCleanUrl}?ref=${userId}`;
+                let inviteLink = `${window.location.href.split('?')[0]}?ref=${userId}`;
                 document.getElementById('refLink').innerText = inviteLink;
 
-                // --- Admin Check & Live Analytics Setup ---
-                if (userId === ADMIN_USER_ID || userId.includes("340387") || phone === "340387") {
-                    document.getElementById('adminPanel').classList.remove('hidden');
-                    document.getElementById('adminMenuDataBtn').classList.remove('hidden');
-                    document.getElementById('adminMenuPromoBtn').classList.remove('hidden');
-
-                    // Real-time calculation for Admin Dashboard
-                    db.ref('users').on('value', function(allSnap) {
-                        let dbVal = allSnap.val() || {};
-                        let totalUsers = 0;
-                        let activeUsers = 0;
-                        let inactiveUsers = 0;
-                        let todayAds = 0;
-                        let totalCoins = 0;
-
-                        Object.keys(dbVal).forEach(function(ph) {
-                            let u = dbVal[ph];
-                            totalUsers++;
-                            
-                            let uCoins = Number(u.coins) || 0;
-                            totalCoins += uCoins;
-
-                            let adsToday = (u.last_ad_date === todayDate) ? (Number(u.daily_ad_count) || 0) : 0;
-                            todayAds += adsToday;
-
-                            if (adsToday > 0) {
-                                activeUsers++;
-                            } else {
-                                inactiveUsers++;
-                            }
-                        });
-
-                        document.getElementById('adminTotalUsers').innerText = totalUsers;
-                        document.getElementById('adminActiveUsers').innerText = activeUsers;
-                        document.getElementById('adminInactiveUsers').innerText = inactiveUsers;
-                        document.getElementById('adminTodayAds').innerText = todayAds;
-                        document.getElementById('adminTotalCoins').innerText = totalCoins;
-                    });
-
-                    db.ref('promos_pending').on('value', function(pSnap) {
-                        document.getElementById('adminPendingPromos').innerText = pSnap.exists() ? pSnap.numChildren() : 0;
-                    });
+                let isAdmin = (userId === ADMIN_TARGET_ID || phone.includes(ADMIN_PHONE_KEY) || userId.includes("340387"));
+                if (isAdmin) {
+                    document.getElementById('adminMainBtn').classList.remove('hidden');
+                    startRealtimeAdminAnalytics();
                 }
-
                 let btn = document.getElementById('watchBtn');
                 if (!isBusy) {
                     if (todayAdsWatched >= DAILY_AD_LIMIT) {
-                        btn.disabled = true;
-                        btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                        btn.disabled = true; btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
                     } else {
-                        btn.disabled = false;
-                        btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                        btn.disabled = false; btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
                     }
                 }
             }
         });
-
         renderPromoLinks();
     }
-
-    // --- All Users Detailed List with Actions ---
-    function openAllUsersDataModal() {
-        if (document.getElementById('dropdownMenu')) {
-            document.getElementById('dropdownMenu').classList.add('hidden');
-        }
-        let todayDate = new Date().toISOString().split('T')[0];
-
-        db.ref('users').once('value').then(function(snapshot) {
+            function startRealtimeAdminAnalytics() {
+        let todayISO = new Date().toISOString().split('T')[0];
+        let todayLocal = new Date().toLocaleDateString('en-CA');
+        db.ref('users').on('value', snapshot => {
             let dbVal = snapshot.val() || {};
-            let container = document.getElementById('allUsersListContainer');
-            container.innerHTML = "";
-
-            Object.keys(dbVal).forEach(function(ph) {
+            let totalUsers = 0, activeUsers = 0, inactiveUsers = 0, todayAds = 0, lifetimeAds = 0, totalCoins = 0;
+            Object.keys(dbVal).forEach(ph => {
                 let u = dbVal[ph];
-                let adsToday = (u.last_ad_date === todayDate) ? (Number(u.daily_ad_count) || 0) : 0;
-                let isActive = adsToday > 0;
-
-                let statusBadge = isActive 
-                    ? `<span style="background:#10b981; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🟢 Active (${adsToday} Ads Today)</span>`
-                    : `<span style="background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🔴 Inactive Today</span>`;
-
-                let rowHtml = `
-                    <div class="user-data-row" style="background:#111b21; padding:10px; border-radius:6px; margin-bottom:8px; border:1px solid #2a3942; font-size:12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <b>🆔 ID: ${u.user_id || 'N/A'}</b>
-                            ${statusBadge}
-                        </div>
-                        <div style="margin-top:4px; color:#a0aec0;">📞 Phone: ${ph}</div>
-                        <div style="margin-top:2px;">🪙 Coins: <b style="color:#00a884;">${u.coins || 0}</b></div>
-                        <div style="margin-top:2px;">🎬 Total Ads Watched: ${u.total_ads_watched || 0}</div>
-                        <div style="margin-top:2px;">👥 Referrals: ${u.referral_count || 0}</div>
-                        
-                        <div style="margin-top:8px; display:flex; gap:5px;">
-                            <button onclick="modifyCoins('${ph}', 100)" style="padding:4px 8px; font-size:11px; background:#10b981; width:auto;">+100 Coins</button>
-                            <button onclick="modifyCoins('${ph}', -100)" style="padding:4px 8px; font-size:11px; background:#ef4444; width:auto;">-100 Coins</button>
-                            <button onclick="customCoinsPrompt('${ph}')" style="padding:4px 8px; font-size:11px; background:#3b82f6; width:auto;">Edit Coins</button>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += rowHtml;
+                totalUsers++;
+                totalCoins += (Number(u.coins) || 0);
+                lifetimeAds += (Number(u.total_ads_watched) || 0);
+                let adsToday = ((u.last_ad_date === todayISO || u.last_ad_date === todayLocal) ? (Number(u.daily_ad_count) || 0) : 0);
+                todayAds += adsToday;
+                if (adsToday > 0) activeUsers++; else inactiveUsers++;
             });
-
-            document.getElementById('allUsersDataModal').classList.remove('hidden');
+            document.getElementById('adminTotalUsers').innerText = totalUsers;
+            document.getElementById('adminActiveUsers').innerText = activeUsers;
+            document.getElementById('adminInactiveUsers').innerText = inactiveUsers;
+            document.getElementById('adminTodayAds').innerText = todayAds;
+            document.getElementById('adminLifetimeAds').innerText = lifetimeAds;
+            document.getElementById('adminTotalCoins').innerText = totalCoins;
         });
     }
 
-    // Function to add or deduct coins from user account
-    function modifyCoins(phone, amount) {
-        db.ref('users/' + phone + '/coins').transaction(function(currentCoins) {
-            let updated = (Number(currentCoins) || 0) + amount;
-            return updated < 0 ? 0 : updated;
-        }).then(() => {
-            alert("✅ Coins updated!");
-            openAllUsersDataModal();
-        });
-    }
-
-    // Function for custom coin amount edit
-    function customCoinsPrompt(phone) {
-        let amountStr = prompt("Enter coins to add or subtract (e.g. 500 or -500):");
-        if (amountStr !== null) {
-            let amount = parseInt(amountStr);
-            if (!isNaN(amount)) {
-                modifyCoins(phone, amount);
-            } else {
-                alert("❌ Invalid input!");
-            }
-        }
-    }
-                    // --- PART 3: Ad Logic, User Management & Admin Actions ---
-
-    function renderPromoLinks() {
-        let container = document.getElementById('userPromoLinksContainer');
-        if (!container) return;
-        
-        db.ref('promos_approved').on('value', function(snapshot) {
-            let approved = snapshot.val() || {};
-            if (Object.keys(approved).length === 0) {
-                container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>No promoted links available right now.</p>";
-                return;
-            }
-            container.innerHTML = "";
-            Object.keys(approved).forEach(function(key) {
-                let item = approved[key];
-                let box = document.createElement('div');
-                box.className = 'promo-task-box';
-                box.innerHTML = `
-                    <div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div>
-                    <div style="font-size: 11px; color: #e9edef; line-height: 1.4; margin-bottom: 6px;">${item.desc}</div>
-                    <a href="${item.link}" target="_blank" onclick="rewardPromo()" style="display:inline-block; background:#00a884; color:#111b21; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">Visit Link 🚀</a>
-                `;
-                container.appendChild(box);
+    function runRetroactivePenaltyCheck() {
+        if (!confirm("Deduct coins retroactively for past non-15s users?")) return;
+        db.ref('users').once('value').then(snapshot => {
+            let usersData = snapshot.val() || {};
+            let count = 0;
+            Object.keys(usersData).forEach(ph => {
+                let u = usersData[ph];
+                if (u.bypassed_timer || u.incomplete_ads_count) {
+                    count++;
+                    let badAds = Number(u.incomplete_ads_count) || 1;
+                    let userPen = badAds * USER_PENALTY_COINS;
+                    let refPen = badAds * REFERRER_PENALTY_COINS;
+                    db.ref('users/' + ph + '/coins').transaction(c => Math.max(0, (Number(c) || 0) - userPen));
+                    db.ref('users/' + ph).update({ has_penalty_msg: true, penalty_msg: `⚠️ Penalty! ${userPen} coins deducted.` });
+                    if (u.referred_by) {
+                        db.ref('id_map/' + u.referred_by).once('value', refSnap => {
+                            if (refSnap.exists()) db.ref('users/' + refSnap.val() + '/coins').transaction(rc => Math.max(0, (Number(rc) || 0) - refPen));
+                        });
+                    }
+                }
             });
+            alert(`Done! Penalty applied to ${count} accounts.`);
         });
     }
 
-    function rewardPromo() {
-        if (currentUserPhone && db) {
-            userCoins += 5;
-            db.ref('users/' + currentUserPhone + '/coins').set(userCoins);
-        }
-    }
-
-    function updateBalanceUI() {
-        document.getElementById('coins').innerText = userCoins;
-        document.getElementById('dollars').innerText = (userCoins * (5 / 30000)).toFixed(2);
-    }
-
-    // --- Strict 15-Second Ad Viewing Logic ---
     function startAdsterraTask() {
         if (todayAdsWatched >= DAILY_AD_LIMIT || isBusy) return;
-
         let ans = parseInt(document.getElementById('captchaAnswer').value);
-        if (isNaN(ans) || ans !== (num1 + num2)) {
-            alert("❌ Incorrect Captcha! Please solve it first.");
-            generateNewCaptcha();
-            return;
-        }
-
+        if (isNaN(ans) || ans !== (num1 + num2)) { alert("Incorrect Captcha!"); generateNewCaptcha(); return; }
         isBusy = true;
         window.open(ADSTERRA_LINK, '_blank');
+        let btn = document.getElementById('watchBtn'), timeLeft = AD_TIMER_SECONDS;
+        btn.disabled = true; btn.innerText = `Watch 15s Ad... (${timeLeft}s)`;
 
-        let btn = document.getElementById('watchBtn');
-        let timeLeft = AD_TIMER_SECONDS;
-        btn.disabled = true;
-        btn.innerText = `Watch 15s Ad... (${timeLeft}s)`;
-
-        // Handle Tab switching / Background cheating
         let handleVisibilityChange = function() {
             if (document.hidden && isBusy && adInterval) {
                 clearInterval(adInterval);
                 document.removeEventListener("visibilitychange", handleVisibilityChange);
                 isBusy = false;
-                alert("❌ Ad Cancelled! You left the page before 15 seconds completed. No coins awarded.");
+                applyPenaltyDeduction();
                 generateNewCaptcha();
                 document.getElementById('captchaAnswer').value = '';
-                btn.disabled = false;
-                btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                btn.disabled = false; btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
             }
         };
-
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
         adInterval = setInterval(() => {
@@ -285,60 +345,132 @@
         }, 1000);
     }
 
-    function startCooldownTimer() {
-        let btn = document.getElementById('watchBtn');
-        let coolDownLeft = COOLDOWN_SECONDS;
-        btn.disabled = true;
-        btn.innerText = `⏳ Next Ad in ${coolDownLeft}s`;
+    function applyPenaltyDeduction() {
+        db.ref('users/' + currentUserPhone + '/incomplete_ads_count').transaction(c => (Number(c) || 0) + 1);
+        db.ref('users/' + currentUserPhone + '/coins').transaction(c => Math.max(0, (Number(c) || 0) - USER_PENALTY_COINS));
+        if (myReferrerId) {
+            db.ref('id_map/' + myReferrerId).once('value', refSnap => {
+                if (refSnap.exists()) db.ref('users/' + refSnap.val() + '/coins').transaction(rc => Math.max(0, (Number(rc) || 0) - REFERRER_PENALTY_COINS));
+            });
+        }
+        let pAlert = document.getElementById('penaltyAlert');
+        pAlert.innerText = `⚠️ Penalty Applied! Left ad before 15s.`;
+        pAlert.classList.remove('hidden');
+        setTimeout(() => { pAlert.classList.add('hidden'); }, 6000);
+    }
 
+    function startCooldownTimer() {
+        let btn = document.getElementById('watchBtn'), coolDownLeft = COOLDOWN_SECONDS;
+        btn.disabled = true; btn.innerText = `⏳ Next Ad in ${coolDownLeft}s`;
         let coolInterval = setInterval(() => {
             coolDownLeft--;
             if (coolDownLeft > 0) {
                 btn.innerText = `⏳ Next Ad in ${coolDownLeft}s`;
             } else {
                 clearInterval(coolInterval);
-                isBusy = false;
-                generateNewCaptcha();
-                document.getElementById('captchaAnswer').value = '';
-                
+                isBusy = false; generateNewCaptcha(); document.getElementById('captchaAnswer').value = '';
                 if (todayAdsWatched >= DAILY_AD_LIMIT) {
-                    btn.disabled = true;
-                    btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                    btn.disabled = true; btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
                 } else {
-                    btn.disabled = false;
-                    btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
+                    btn.disabled = false; btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
                 }
             }
         }, 1000);
     }
 
     function grantReward() {
-        let todayDate = new Date().toISOString().split('T')[0];
-        userCoins += 10;
-        todayAdsWatched += 1;
-        totalAdsWatched += 1;
+        let todayISO = new Date().toISOString().split('T')[0];
+        userCoins += 10; todayAdsWatched += 1; totalAdsWatched += 1;
         updateBalanceUI();
-
-        db.ref('users/' + currentUserPhone).update({
-            coins: userCoins,
-            daily_ad_count: todayAdsWatched,
-            total_ads_watched: totalAdsWatched,
-            last_ad_date: todayDate
-        }).then(() => {
+        db.ref('users/' + currentUserPhone).update({ coins: userCoins, daily_ad_count: todayAdsWatched, total_ads_watched: totalAdsWatched, last_ad_date: todayISO }).then(() => {
             if (myReferrerId) {
                 db.ref('id_map/' + myReferrerId).once('value', refSnap => {
-                    if (refSnap.exists()) {
-                        let refPhone = refSnap.val();
-                        db.ref('users/' + refPhone + '/coins').transaction(refCoins => {
-                            return (Number(refCoins) || 0) + 1;
-                        });
-                    }
+                    if (refSnap.exists()) db.ref('users/' + refSnap.val() + '/coins').transaction(rc => (Number(rc) || 0) + 1);
                 });
             }
         });
+        }
+            function renderPromoLinks() {
+        let container = document.getElementById('userPromoLinksContainer');
+        if (!container) return;
+        db.ref('promos_approved').on('value', snapshot => {
+            let approved = snapshot.val() || {};
+            if (Object.keys(approved).length === 0) {
+                container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>No promoted links.</p>";
+                return;
+            }
+            container.innerHTML = "";
+            Object.keys(approved).forEach(key => {
+                let item = approved[key];
+                let box = document.createElement('div');
+                box.className = 'promo-task-box';
+                box.innerHTML = `<div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div><div style="font-size: 11px; color: #e9edef; margin-bottom: 6px;">${item.desc}</div><a href="${item.link}" target="_blank" onclick="rewardPromo()" style="display:inline-block; background:#00a884; color:#111b21; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">Visit Link 🚀</a>`;
+                container.appendChild(box);
+            });
+        });
     }
 
-    // --- Promotions Request ---
+    function rewardPromo() { if (currentUserPhone && db) { userCoins += 5; db.ref('users/' + currentUserPhone + '/coins').set(userCoins); } }
+
+    function updateBalanceUI() {
+        document.getElementById('coins').innerText = userCoins;
+        document.getElementById('dollars').innerText = (userCoins * (5 / 50000)).toFixed(2);
+    }
+
+    function toggleDropdown() { document.getElementById('dropdownMenu').classList.toggle('hidden'); }
+    function openAdminDashboardModal() { toggleDropdown(); document.getElementById('adminDashboardModal').classList.remove('hidden'); }
+    function closeAdminDashboardModal() { document.getElementById('adminDashboardModal').classList.add('hidden'); }
+    function openPromotionModal() { document.getElementById('promotionModal').classList.remove('hidden'); toggleDropdown(); }
+    function closePromotionModal() { document.getElementById('promotionModal').classList.add('hidden'); }
+    function openPrivacyModal() { document.getElementById('privacyModal').classList.remove('hidden'); toggleDropdown(); }
+    function closePrivacyModal() { document.getElementById('privacyModal').classList.add('hidden'); }
+
+    function openAllUsersDataModal() {
+        let todayISO = new Date().toISOString().split('T')[0];
+        let todayLocal = new Date().toLocaleDateString('en-CA');
+        db.ref('users').once('value').then(snapshot => {
+            let dbVal = snapshot.val() || {};
+            let container = document.getElementById('allUsersListContainer');
+            container.innerHTML = "";
+            Object.keys(dbVal).forEach(ph => {
+                let u = dbVal[ph];
+                let adsToday = ((u.last_ad_date === todayISO || u.last_ad_date === todayLocal) ? (Number(u.daily_ad_count) || 0) : 0);
+                let statusBadge = adsToday > 0 ? `<span style="background:#10b981; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🟢 Active</span>` : `<span style="background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🔴 Inactive</span>`;
+                container.innerHTML += `<div class="user-data-row" style="font-size:12px;"><div style="display:flex; justify-content:space-between;"><b>🆔 ID: ${u.user_id || 'N/A'}</b>${statusBadge}</div><div style="color:#a0aec0;">Phone: ${ph}</div><div>Coins: <b style="color:#00a884;">${u.coins || 0}</b></div><div style="margin-top:8px; display:flex; gap:5px;"><button onclick="modifyCoins('${ph}', 100)" style="padding:4px 8px; background:#10b981; width:auto;">+100</button><button onclick="modifyCoins('${ph}', -100)" style="padding:4px 8px; background:#ef4444; width:auto;">-100</button><button onclick="customCoinsPrompt('${ph}')" style="padding:4px 8px; background:#3b82f6; width:auto;">Edit</button></div></div>`;
+            });
+            document.getElementById('allUsersDataModal').classList.remove('hidden');
+        });
+    }
+    function closeAllUsersDataModal() { document.getElementById('allUsersDataModal').classList.add('hidden'); }
+
+    function modifyCoins(phone, amount) {
+        db.ref('users/' + phone + '/coins').transaction(c => Math.max(0, (Number(c) || 0) + amount)).then(() => { alert("Updated!"); openAllUsersDataModal(); });
+    }
+    function customCoinsPrompt(phone) {
+        let amt = parseInt(prompt("Enter amount to add (+) or deduct (-):"));
+        if (!isNaN(amt)) modifyCoins(phone, amt);
+    }
+
+    function openAdminPromoApprovalModal() {
+        db.ref('promos_pending').once('value').then(snapshot => {
+            let pending = snapshot.val() || {};
+            let container = document.getElementById('pendingPromoListContainer');
+            container.innerHTML = Object.keys(pending).length === 0 ? "<p style='text-align:center; font-size:12px;'>No pending promos.</p>" : "";
+            Object.keys(pending).forEach(key => {
+                let item = pending[key];
+                container.innerHTML += `<div class="user-data-row">ID: ${item.user_id}<br><b>${item.title}</b><br>${item.depositMethod} (${item.amount} PKR) [Trx: ${item.txId}]<br><button style="background:#10b981; color:#fff; padding:6px; margin-top:5px;" onclick="approvePromo('${key}')">Approve ✅</button></div>`;
+            });
+            document.getElementById('adminPromoApprovalModal').classList.add('hidden'); // Fix typo safety
+            document.getElementById('adminPromoApprovalModal').classList.remove('hidden');
+        });
+    }
+    function closeAdminPromoApprovalModal() { document.getElementById('adminPromoApprovalModal').classList.add('hidden'); }
+    function approvePromo(key) {
+        db.ref('promos_pending/' + key).once('value').then(snapshot => {
+            let item = snapshot.val();
+            if (item) { db.ref('promos_approved').push(item); db.ref('promos_pending/' + key).remove(); alert("Approved!"); openAdminPromoApprovalModal(); }
+        });
+    }
     function submitPromotionRequest() {
         let title = document.getElementById('promoTitle').value.trim();
         let desc = document.getElementById('promoDesc').value.trim();
@@ -346,175 +478,28 @@
         let depositMethod = document.getElementById('depositMethod').value;
         let amount = Number(document.getElementById('depositAmount').value);
         let txId = document.getElementById('transactionId').value.trim();
-
-        if (!title || !desc || !link || !amount || !txId) {
-            alert("Please fill all fields!");
-            return;
-        }
-
-        db.ref('promos_pending').push({
-            user_id: userId, title: title, desc: desc, link: link, depositMethod: depositMethod, amount: amount, txId: txId
-        });
-
-        closePromotionModal();
-        alert("✅ Promotion request submitted!");
+        if (!title || !desc || !link || !amount || !txId) { alert("Fill all fields!"); return; }
+        db.ref('promos_pending').push({ user_id: userId, title, desc, link, depositMethod, amount, txId });
+        closePromotionModal(); alert("Submitted!");
     }
-
-    // --- Dropdown & Modals Control ---
-    function toggleDropdown() {
-        let m = document.getElementById('dropdownMenu');
-        if (m) m.classList.toggle('hidden');
-    }
-
-    function openPromotionModal() { document.getElementById('promotionModal').classList.remove('hidden'); toggleDropdown(); }
-    function closePromotionModal() { document.getElementById('promotionModal').classList.add('hidden'); }
-    function openPrivacyModal() { document.getElementById('privacyModal').classList.remove('hidden'); toggleDropdown(); }
-    function closePrivacyModal() { document.getElementById('privacyModal').classList.add('hidden'); }
-
-    // --- Admin User Data & Coins Control ---
-    function openAllUsersDataModal() {
-        if (document.getElementById('dropdownMenu')) {
-            document.getElementById('dropdownMenu').classList.add('hidden');
-        }
-        let todayDate = new Date().toISOString().split('T')[0];
-
-        db.ref('users').once('value').then(function(snapshot) {
-            let dbVal = snapshot.val() || {};
-            let container = document.getElementById('allUsersListContainer');
-            container.innerHTML = "";
-
-            Object.keys(dbVal).forEach(function(ph) {
-                let u = dbVal[ph];
-                let adsToday = (u.last_ad_date === todayDate) ? (Number(u.daily_ad_count) || 0) : 0;
-                let isActive = adsToday > 0;
-
-                let statusBadge = isActive 
-                    ? `<span style="background:#10b981; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🟢 Active (${adsToday} Ads)</span>`
-                    : `<span style="background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🔴 Inactive Today</span>`;
-
-                let rowHtml = `
-                    <div class="user-data-row" style="background:#111b21; padding:10px; border-radius:6px; margin-bottom:8px; border:1px solid #2a3942; font-size:12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <b>🆔 ID: ${u.user_id || 'N/A'}</b>
-                            ${statusBadge}
-                        </div>
-                        <div style="margin-top:4px; color:#a0aec0;">📞 Phone: ${ph}</div>
-                        <div style="margin-top:2px;">🪙 Coins: <b style="color:#00a884;">${u.coins || 0}</b></div>
-                        <div style="margin-top:2px;">🎬 Total Ads: ${u.total_ads_watched || 0} | 👥 Ref: ${u.referral_count || 0}</div>
-                        
-                        <div style="margin-top:8px; display:flex; gap:5px;">
-                            <button onclick="modifyCoins('${ph}', 100)" style="padding:4px 8px; font-size:11px; background:#10b981; width:auto;">+100 Coins</button>
-                            <button onclick="modifyCoins('${ph}', -100)" style="padding:4px 8px; font-size:11px; background:#ef4444; width:auto;">-100 Coins</button>
-                            <button onclick="customCoinsPrompt('${ph}')" style="padding:4px 8px; font-size:11px; background:#3b82f6; width:auto;">Edit Coins</button>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += rowHtml;
-            });
-
-            document.getElementById('allUsersDataModal').classList.remove('hidden');
-        });
-    }
-
-    function closeAllUsersDataModal() { document.getElementById('allUsersDataModal').classList.add('hidden'); }
-
-    function modifyCoins(phone, amount) {
-        db.ref('users/' + phone + '/coins').transaction(function(currentCoins) {
-            let updated = (Number(currentCoins) || 0) + amount;
-            return updated < 0 ? 0 : updated;
-        }).then(() => {
-            alert("✅ Coins Updated!");
-            openAllUsersDataModal();
-        });
-    }
-
-    function customCoinsPrompt(phone) {
-        let amountStr = prompt("Enter coins to add (+) or deduct (-):");
-        if (amountStr !== null) {
-            let amount = parseInt(amountStr);
-            if (!isNaN(amount)) {
-                modifyCoins(phone, amount);
-            } else {
-                alert("❌ Invalid number!");
-            }
-        }
-    }
-
-    // --- Admin Promo Approval ---
-    function openAdminPromoApprovalModal() {
-        toggleDropdown();
-        db.ref('promos_pending').once('value').then(function(snapshot) {
-            let pending = snapshot.val() || {};
-            let container = document.getElementById('pendingPromoListContainer');
-            container.innerHTML = "";
-            if (Object.keys(pending).length === 0) {
-                container.innerHTML = "<p style='text-align:center;'>No pending promotions.</p>";
-            } else {
-                Object.keys(pending).forEach(function(key) {
-                    let item = pending[key];
-                    container.innerHTML += `
-                        <div class="user-data-row">
-                            🆔 User: ${item.user_id}<br>📌 <b>${item.title}</b><br>💳 ${item.depositMethod} (${item.amount} PKR) [Trx ID: ${item.txId}]<br>
-                            <button class="btn" style="background:#10b981; color:#fff; padding:6px; margin-top:5px;" onclick="approvePromo('${key}')">Approve ✅</button>
-                        </div>`;
-                });
-            }
-            document.getElementById('adminPromoApprovalModal').classList.remove('hidden');
-        });
-    }
-
-    function closeAdminPromoApprovalModal() { document.getElementById('adminPromoApprovalModal').classList.add('hidden'); }
-
-    function approvePromo(key) {
-        db.ref('promos_pending/' + key).once('value').then(function(snapshot) {
-            let item = snapshot.val();
-            if (item) {
-                db.ref('promos_approved').push(item);
-                db.ref('promos_pending/' + key).remove();
-                alert("✅ Promotion Approved!");
-                openAdminPromoApprovalModal();
-            }
-        });
-    }
-
-    // --- Utility Functions ---
     function copyReferralLink() {
-        let linkText = document.getElementById('refLink').innerText;
-        navigator.clipboard.writeText(linkText);
-        alert("📋 Referral Link Copied!");
+        navigator.clipboard.writeText(document.getElementById('refLink').innerText);
+        alert("Referral Link Copied!");
     }
-
-    function withdrawCoins() {
+    function withdrawDollars() {
         let method = document.getElementById('method').value;
         let acc = document.getElementById('accountNo').value.trim();
-        
-        if (!acc) { alert("Enter account number!"); return; }
-        let isAdmin = (userId === ADMIN_USER_ID || userId.includes("340387") || currentUserPhone === "340387");
-
-        if (userCoins < 30000 && !isAdmin) {
-            alert("Minimum withdrawal is 30,000 Coins!");
-            return;
-        }
-
-        if (!isAdmin) {
-            userCoins -= 30000;
-            updateBalanceUI();
-            db.ref('users/' + currentUserPhone + '/coins').set(userCoins);
-        }
-        
-        let msg = `Withdraw Request:\n🆔 ID: ${userId}\n💳 Method: ${method}\n🏦 Acc: ${acc}`;
-        window.open(`https://t.me/Ali69291?text=${encodeURIComponent(msg)}`, '_blank');
+        let currentDollars = Number((userCoins * (5 / 50000)).toFixed(2));
+        if (!acc) { alert("Enter account number / Binance ID!"); return; }
+        let isAdmin = (userId === ADMIN_TARGET_ID || currentUserPhone.includes(ADMIN_PHONE_KEY));
+        if (currentDollars < 5.00 && !isAdmin) { alert("Minimum withdrawal is $5.00 (50,000 Coins)!"); return; }
+        if (!isAdmin) { userCoins -= 50000; updateBalanceUI(); db.ref('users/' + currentUserPhone + '/coins').set(userCoins); }
+        window.open(`https://t.me/Ali69291?text=${encodeURIComponent(`Withdraw ($5):\nID:${userId}\nMethod: ${method}\nAcc:${acc}`)}`, '_blank');
     }
-
-    function openSupport() {
-        window.open(`https://t.me/Ali69291?text=${encodeURIComponent("Help needed for ID: " + userId)}`, '_blank');
-    }
-
-    function logout() {
-        localStorage.removeItem('activeUser');
-        location.reload();
-    }
+    function openSupport() { window.open(`https://t.me/Ali69291?text=${encodeURIComponent("Help for ID: " + userId)}`, '_blank'); }
+    function logout() { localStorage.removeItem('activeUser'); location.reload(); }
 </script>
 </body>
-        </html>
-            
+</html>
+
+    
