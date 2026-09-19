@@ -72,12 +72,12 @@
             <div id="adminMenuPromoBtn" class="dropdown-item hidden" style="color: #00a884; font-weight: bold;" onclick="openAdminPromoApprovalModal()">🛡️ پینڈنگ پروموشنز اپروو کریں</div>
         </div>
 
-        <!-- NOTICE BANNER FOR INVALID ADS CUTTING -->
+        <!-- NOTICE BANNER -->
         <div id="cheatNotice" class="notice-banner hidden">
-            ⚠️ <b>اہم نوٹس:</b> چونکہ آپ یا آپ کے ریفرل نے پہلے ایڈز پورے 15 سیکنڈ نہیں دیکھے تھے، اس لیے پرائیویسی اصول کے مطابق غیر معتبر ایڈز کے کوائنز آپ کے اور آپ کے انوائٹر کے اکاؤنٹ سے کاٹ لیے گئے ہیں۔ آئندہ ہر ایڈ پورا 15 سیکنڈ دیکھیں۔
+            ⚠️ <b>اہم نوٹس:</b> غیر معتبر ایڈز کے کوائنز ایڈجسٹ کر دیے گئے ہیں۔ آئندہ ہر ایڈ پورا 15 سیکنڈ دیکھیں۔
         </div>
 
-        <!-- ADMIN PANEL FOR ID-340387 -->
+        <!-- ADMIN PANEL -->
         <div id="adminPanel" class="admin-panel hidden">
             <h4>🛠️ Admin Control Panel</h4>
             <div style="font-size: 12px; line-height: 1.6; color: #e9edef;">
@@ -161,14 +161,13 @@
 
 </div>
 
-<!-- TERMS & PRIVACY ACCEPTANCE MODAL -->
+<!-- TERMS MODAL -->
 <div id="termsModal" class="modal hidden">
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #00a884; margin-bottom: 12px; text-align: center;">📜 پرائیویسی اور اصول و ضوابط</h3>
         <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 15px;">
-            1. جنہوں نے پہلے ایڈز پورے 15 سیکنڈ نہیں دیکھے تھے، ان کا اور ان کے رِفرل کا بیلنس کاٹ لیا گیا ہے۔<br>
-            2. آئندہ ہر ایڈ کو لازماً پورا **15 سیکنڈ** دیکھنا ہوگا۔<br>
-            3. اصولوں کی خلاف ورزی پر اکاؤنٹ بلاک یا بیلنس ضبط ہو سکتا ہے۔
+            1. ہر ایڈ کو لازماً پورا **15 سیکنڈ** دیکھنا ہوگا۔<br>
+            2. اصولوں کی خلاف ورزی پر اکاؤنٹ بلاک یا بیلنس ضبط ہو سکتا ہے۔
         </p>
         <button class="btn" onclick="acceptTermsAndProceed()">میں اصول تسلیم کرتا ہوں (Accept & Continue) ✅</button>
     </div>
@@ -179,12 +178,12 @@
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #ffd700; margin-bottom: 10px;">🚀 لنکس اور کیمپین پروموشن</h3>
         <p style="font-size: 11px; color: #8696a0; margin-bottom: 10px;">
-            ٹائٹل اور مکمل ڈسکرپشن لکھیں تاکہ دوسرے یوزرز کو سمجھ آئے۔ (ایڈمن اپروول کے بعد لائیو ہوگی)۔
+            ٹائٹل اور ڈسکرپشن لکھیں (ایڈمن اپروول کے بعد لائیو ہوگی)۔
         </p>
         
-        <input type="text" id="promoTitle" placeholder="عنوان درج کریں (مثلاً: ایپ ڈاؤن لوڈ کریں)">
-        <textarea id="promoDesc" placeholder="تفصیل/ڈسکرپشن (مثلاً: لنک پر کلک کر کے اکاؤنٹ بنائیں اور سکرین شاٹ بھیجیں)"></textarea>
-        <input type="text" id="promoLink" placeholder="اپنا لنک یا ایپ کا ربط یہاں لکھیں">
+        <input type="text" id="promoTitle" placeholder="عنوان درج کریں">
+        <textarea id="promoDesc" placeholder="تفصیل/ڈسکرپشن لکھیں"></textarea>
+        <input type="text" id="promoLink" placeholder="اپنا لنک یہاں لکھیں">
 
         <select id="depositMethod">
             <option value="Easypaisa">Easypaisa</option>
@@ -193,7 +192,7 @@
         </select>
         
         <input type="number" id="depositAmount" placeholder="رقم درج کریں (₹100 یا $1)">
-        <input type="text" id="transactionId" placeholder="ٹرانزیکشن ID / اکاؤنٹ نمبر لکھیں">
+        <input type="text" id="transactionId" placeholder="ٹرانزیکشن ID لکھیں">
 
         <button class="btn" onclick="submitPromotionRequest()">سبمٹ برائے ایڈمن اپروول 🚀</button>
         <button class="btn" style="background: #202c33; color: #ef4444; margin-top: 5px;" onclick="closePromotionModal()">بند کریں ❌</button>
@@ -205,9 +204,8 @@
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #00a884; margin-bottom: 10px; text-align: center;">📜 پرائیویسی اور اصول</h3>
         <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 10px;">
-            1. ہر یوزر روزانہ کے پورے 25 ایڈز دیکھ سکتا ہے۔<br>
-            2. ممبرز کی پروموٹ شدہ لنکس ایڈمن اپروول کے بعد شو ہوتی ہیں۔<br>
-            3. منیمم ودڈرا لمٹ $5 ہے۔
+            1. روزانہ کے 25 ایڈز دیکھ سکتے ہیں۔<br>
+            2. منیمم ودڈرا لمٹ $5 ہے۔
         </p>
         <button class="btn" onclick="closePrivacyModal()">بند کریں ❌</button>
     </div>
@@ -235,7 +233,7 @@
     const ADMIN_USER_ID = "ID-340387";
     const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
 
-    let isLogin = true;
+    let isLoginMode = true;
     let currentUserPhone = localStorage.getItem('activeUser') || null;
     let userId = "";
     let userCoins = 0;
@@ -249,21 +247,26 @@
     generateNewCaptcha();
 
     if (currentUserPhone) {
-        checkAndDeductInvalidAds(currentUserPhone);
         let usersData = JSON.parse(localStorage.getItem('all_users_db') || "{}");
         let userData = usersData[currentUserPhone];
-        if (userData && !userData.terms_accepted) {
-            document.getElementById('termsModal').classList.remove('hidden');
+        if (userData) {
+            if (!userData.terms_accepted) {
+                document.getElementById('termsModal').classList.remove('hidden');
+            } else {
+                loadDashboard(currentUserPhone);
+            }
         } else {
-            loadDashboard(currentUserPhone);
+            localStorage.removeItem('activeUser');
         }
     }
 
     function generateNewCaptcha() {
         num1 = Math.floor(Math.random() * 10) + 1;
         num2 = Math.floor(Math.random() * 10) + 1;
-        document.getElementById('captchaQuestion').innerText = `${num1} + ${num2} = ?`;
-        document.getElementById('captchaAnswer').value = "";
+        let q = document.getElementById('captchaQuestion');
+        let a = document.getElementById('captchaAnswer');
+        if(q) q.innerText = `${num1} + ${num2} = ?`;
+        if(a) a.value = "";
     }
 
     function toggleDropdown() {
@@ -301,9 +304,7 @@
                     🆔 آئی ڈی: <b style="color:#00a884;">${u.user_id}</b><br>
                     📱 فون نمبر: ${ph}<br>
                     🪙 کوائنز: <b style="color:#ffd700;">${u.coins}</b><br>
-                    📺 دیکھے گئے ایڈز: ${u.total_ads_watched || 0}<br>
                     👥 ریفرلز: ${u.referral_count || 0}<br>
-                    📌 اسٹیٹس: <span style="color:${u.terms_accepted ? '#10b981' : '#f59e0b'};">${u.terms_accepted ? 'ایکٹو (Active)' : 'پینڈنگ اصول'}</span>
                 `;
                 container.appendChild(row);
             });
@@ -329,6 +330,21 @@
                     📌 عنوان: <b style="color:#ffd700;">${item.title}</b><br>
                     📝 تفصیل: ${item.desc}<br>
                     🔗 لنک: <span style="color:#00a884; word-break:break-all;">${item.link}</span><br>
-                    💳 ادائیگی: ${item.depositMethod} (${item.amount}) | TxID: ${item.txId}<br>
                     <button class="btn" style="padding:6px; font-size:11px; margin-top:6px; background:#10b981; color:white;" onclick="approvePromo(${index})">اپروو کریں (Approve) ✅</button>
-                    <button class="btn" style="padding:6px; font-size:11px; margin-top:4px; background:#ef4444; co
+                    <button class="btn" style="padding:6px; font-size:11px; margin-top:4px; background:#ef4444; color:white;" onclick="rejectPromo(${index})">ریجیکٹ کریں ❌</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+        document.getElementById('adminPromoApprovalModal').classList.remove('hidden');
+    }
+    function closeAdminPromoApprovalModal() { document.getElementById('adminPromoApprovalModal').classList.add('hidden'); }
+
+    function approvePromo(index) {
+        let pendingList = JSON.parse(localStorage.getItem('user_promos_pending_db') || "[]");
+        let approvedList = JSON.parse(localStorage.getItem('user_promos_approved_db') || "[]");
+
+        let approvedItem = pendingList.splice(index, 1)[0];
+        approvedList.push(approvedItem);
+
+        localStorage.setItem('user_promos_pending_db',
