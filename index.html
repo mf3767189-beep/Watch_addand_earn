@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AdEarn Rewards - Firebase Connected</title>
+    <title>AdEarn Rewards - Fully Fixed & Connected</title>
     
-    <!-- Firebase SDK (Compat Version for Single File Web Apps) -->
+    <!-- Firebase SDK (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
@@ -21,6 +21,7 @@
         .wallet { background: #008069; color: white; padding: 18px; border-radius: 12px; margin-bottom: 12px; }
         .wallet h2 { font-size: 30px; margin-top: 5px; color: #ffd700; }
         .btn { background: #00a884; color: #111b21; border: none; padding: 12px; width: 100%; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 8px; }
+        .btn:active { transform: scale(0.98); }
         .btn-withdraw { background: #2563eb; color: white; }
         .btn-support { background: #0088cc; color: white; }
         .btn-copy { background: #eab308; color: #111b21; margin-top: 10px; }
@@ -163,7 +164,7 @@
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #00a884; margin-bottom: 12px; text-align: center;">📜 پرائیویسی اور اصول و ضوابط</h3>
         <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 15px;">
-            1. ہر ایڈ کو لازماً پورا دیکھਣਾ ہوگا۔<br>
+            1. ہر ایڈ کو لازماً پورا دیکھنا ہوگا۔<br>
             2. اصولوں کی خلاف ورزی پر اکاؤنٹ بلاک ہو سکتا ہے۔
         </p>
         <button class="btn" onclick="acceptTermsAndProceed()">میں اصول تسلیم کرتا ہوں ✅</button>
@@ -219,7 +220,7 @@
 </div>
 
 <script>
-    // YOUR LIVE FIREBASE CONFIGURATION
+    // EXACT FIREBASE CONFIGURATION
     const firebaseConfig = {
         apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
         authDomain: "addearn-8e4b6.firebaseapp.com",
@@ -231,9 +232,14 @@
         measurementId: "G-WPR4D5571P"
     };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    // Initialize Firebase safely
+    let db;
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+    } catch(e) {
+        alert("فائر بیس انیشلائز نہیں ہو سکا: " + e.message);
+    }
 
     const ADMIN_USER_ID = "ID-340387";
     const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
@@ -245,7 +251,7 @@
 
     window.onload = function() {
         generateNewCaptcha();
-        if (activePhone) {
+        if (activePhone && db) {
             db.ref('users/' + activePhone).once('value').then(snapshot => {
                 let user = snapshot.val();
                 if (user) {
@@ -257,6 +263,8 @@
                 } else {
                     localStorage.removeItem('activeUser');
                 }
+            }).catch(err => {
+                console.error(err);
             });
         }
     };
@@ -276,99 +284,95 @@
     }
 
     async function handleAuth() {
-        let phone = document.getElementById('authPhone').value.trim();
-        let pass = document.getElementById('authPassword').value.trim();
+        try {
+            let phone = document.getElementById('authPhone').value.trim();
+            let pass = document.getElementById('authPassword').value.trim();
 
-        if (!phone || !pass) {
-            alert("براہ کرم فون نمبر اور پاسورڈ دونوں درج کریں!");
-            return;
-        }
+            if (!phone || !pass) {
+                alert("⚠️ براہ کرم فون نمبر اور پاسورڈ دونوں درج کریں!");
+                return;
+            }
 
-        let cleanPhone = phone.replace(/[^0-9]/g, '');
-        let urlParams = new URLSearchParams(window.location.search);
-        let referrerId = urlParams.get('ref') || "";
+            let cleanPhone = phone.replace(/[^0-9]/g, '');
+            if(!cleanPhone) {
+                alert("⚠️ درست فون نمبر درج کریں!");
+                return;
+            }
 
-        let userRef = db.ref('users/' + cleanPhone);
-        let snapshot = await userRef.once('value');
-        let user = snapshot.val();
+            document.getElementById('authBtn').innerText = "Processing...";
 
-        if (isLoginMode) {
-            if (user && user.password === pass) {
-                localStorage.setItem('activeUser', cleanPhone);
-                activePhone = cleanPhone;
-                if (!user.terms_accepted) {
-                    document.getElementById('termsModal').classList.remove('hidden');
+            let urlParams = new URLSearchParams(window.location.search);
+            let referrerId = urlParams.get('ref') || "";
+
+            let userRef = db.ref('users/' + cleanPhone);
+            let snapshot = await userRef.once('value');
+            let user = snapshot.val();
+
+            if (isLoginMode) {
+                if (user && user.password === pass) {
+                    localStorage.setItem('activeUser', cleanPhone);
+                    activePhone = cleanPhone;
+                    if (!user.terms_accepted) {
+                        document.getElementById('termsModal').classList.remove('hidden');
+                    } else {
+                        loadUserDashboard(cleanPhone);
+                    }
                 } else {
-                    loadUserDashboard(cleanPhone);
+                    alert("❌ غلط فون نمبر یا پاسورڈ! اگر آپ نئے یوزر ہیں تو Sign Up پر کلک کریں۔");
                 }
             } else {
-                alert("❌ غلط فون نمبر یا پاسورڈ!");
-            }
-        } else {
-            if (user) {
-                alert("❌ یہ فون نمبر پہلے سے رجسٹرڈ ہے! براہ کرم لاگ ان کریں۔");
-            } else {
-                let allUsersSnap = await db.ref('users').once('value');
-                let totalUsersCount = allUsersSnap.numChildren();
+                if (user) {
+                    alert("❌ یہ فون نمبر پہلے سے رجسٹرڈ ہے! براہ کرم Login کریں۔");
+                } else {
+                    let allUsersSnap = await db.ref('users').once('value');
+                    let totalUsersCount = allUsersSnap.exists() ? allUsersSnap.numChildren() : 0;
 
-                let generatedId = (totalUsersCount === 0) ? ADMIN_USER_ID : ('ID-' + Math.floor(100000 + Math.random() * 900000));
-                let initialCoins = (generatedId === ADMIN_USER_ID) ? 50000 : 0;
+                    let generatedId = (totalUsersCount === 0) ? ADMIN_USER_ID : ('ID-' + Math.floor(100000 + Math.random() * 900000));
+                    let initialCoins = (generatedId === ADMIN_USER_ID) ? 50000 : 0;
 
-                let newUser = {
-                    user_id: generatedId,
-                    password: pass,
-                    coins: initialCoins,
-                    referred_by: referrerId,
-                    referral_count: 0,
-                    terms_accepted: false
-                };
+                    let newUser = {
+                        user_id: generatedId,
+                        password: pass,
+                        coins: initialCoins,
+                        referred_by: referrerId,
+                        referral_count: 0,
+                        terms_accepted: false
+                    };
 
-                await userRef.set(newUser);
+                    await userRef.set(newUser);
 
-                if (referrerId && generatedId !== ADMIN_USER_ID) {
-                    let usersVal = allUsersSnap.val();
-                    for (let ph in usersVal) {
-                        if (usersVal[ph].user_id === referrerId) {
-                            let currRef = usersVal[ph].referral_count || 0;
-                            db.ref('users/' + ph + '/referral_count').set(currRef + 1);
-                            break;
+                    if (referrerId && generatedId !== ADMIN_USER_ID) {
+                        let usersVal = allUsersSnap.val();
+                        if (usersVal) {
+                            for (let ph in usersVal) {
+                                if (usersVal[ph].user_id === referrerId) {
+                                    let currRef = usersVal[ph].referral_count || 0;
+                                    await db.ref('users/' + ph + '/referral_count').set(currRef + 1);
+                                    break;
+                                }
+                            }
                         }
                     }
-                }
 
-                localStorage.setItem('activeUser', cleanPhone);
-                activePhone = cleanPhone;
-                document.getElementById('termsModal').classList.remove('hidden');
+                    localStorage.setItem('activeUser', cleanPhone);
+                    activePhone = cleanPhone;
+                    document.getElementById('termsModal').classList.remove('hidden');
+                }
             }
+        } catch (error) {
+            alert("❌ فائر بیس ایرر: " + error.message + "\n\nاگر Permission Denied کا ایرر ہے تو Firebase Console میں ਜਾ کر Rules کو Read/Write True کریں۔");
+        } finally {
+            document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Sign Up";
         }
     }
 
     function acceptTermsAndProceed() {
-        db.ref('users/' + activePhone + '/terms_accepted').set(true);
-        document.getElementById('termsModal').classList.add('hidden');
-        loadUserDashboard(activePhone);
+        if(activePhone) {
+            db.ref('users/' + activePhone + '/terms_accepted').set(true);
+            document.getElementById('termsModal').classList.add('hidden');
+            loadUserDashboard(activePhone);
+        }
     }
 
     function loadUserDashboard(phone) {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardScreen').classList.remove('hidden');
-
-        db.ref('users/' + phone).on('value', snapshot => {
-            currentUserData = snapshot.val();
-            if (!currentUserData) { logout(); return; }
-
-            if (currentUserData.user_id === ADMIN_USER_ID && currentUserData.coins < 50000) {
-                db.ref('users/' + phone + '/coins').set(50000);
-            }
-
-            document.getElementById('displayUserId').innerText = currentUserData.user_id;
-            document.getElementById('coins').innerText = currentUserData.coins;
-            document.getElementById('withdrawDollars').innerText = (currentUserData.coins * (5 / 50000)).toFixed(2);
-            document.getElementById('totalRefUsers').innerText = currentUserData.referral_count || 0;
-
-            let cleanUrl = window.location.href.split('?')[0];
-            let refLink = `${cleanUrl}?ref=${currentUserData.user_id}`;
-            document.getElementById('refLink').innerText = refLink;
-
-            if (currentUserData.user_id === ADMIN_USER_ID) {
-                document.getElementById('ad
+     
