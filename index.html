@@ -29,7 +29,6 @@
         .ref-stat-item b { font-size: 16px; color: #ffd700; }
         .admin-panel { background: #1f2c34; border: 1px solid #00a884; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: left; }
         .admin-panel h4 { color: #00a884; margin-bottom: 8px; border-bottom: 1px solid #2a3942; padding-bottom: 5px; }
-        .notice-banner { background: #7f1d1d; color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; text-align: left; border: 1px solid #ef4444; }
         .captcha-box { background: #182229; padding: 12px; border-radius: 10px; border: 1px dashed #00a884; margin-bottom: 10px; text-align: center; }
         .promo-task-box { background: #182229; border: 1px solid #2a3942; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: right; direction: rtl; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
@@ -53,8 +52,9 @@
         <h3 id="authTitle" style="color: #8696a0; margin-bottom: 15px; font-size: 15px;">Login to Your Account</h3>
         <input type="text" id="authPhone" placeholder="Mobile Number (e.g. 03001234567)">
         <input type="password" id="authPassword" placeholder="Password">
-        <button class="btn" id="authBtn" onclick="processAuth()">Login</button>
-        <p class="link-text" onclick="toggleMode()" id="toggleText">Don't have an account? Sign Up</p>
+        <button class="btn" id="authBtn" onclick="handleAuth()">Login</button>
+        <p class="link-text" onclick="toggleAuthMode()" id="toggleText">Don't have an account? Sign Up</p>
+        <p class="link-text" style="color: #ef4444; margin-top: 15px;" onclick="resetAllData()">⚠️ ری سیٹ تمام ڈیٹا (Reset All Data)</p>
     </div>
 
     <!-- 2. DASHBOARD SCREEN -->
@@ -72,11 +72,6 @@
             <div id="adminMenuPromoBtn" class="dropdown-item hidden" style="color: #00a884; font-weight: bold;" onclick="openAdminPromoApprovalModal()">🛡️ پینڈنگ پروموشنز اپروو کریں</div>
         </div>
 
-        <!-- NOTICE BANNER -->
-        <div id="cheatNotice" class="notice-banner hidden">
-            ⚠️ <b>اہم نوٹس:</b> غیر معتبر ایڈز کے کوائنز ایڈجسٹ کر دیے گئے ہیں۔ آئندہ ہر ایڈ پورا 15 سیکنڈ دیکھیں۔
-        </div>
-
         <!-- ADMIN PANEL -->
         <div id="adminPanel" class="admin-panel hidden">
             <h4>🛠️ Admin Control Panel</h4>
@@ -84,8 +79,6 @@
                 👑 Status: <b style="color:#ffd700;">Super Admin (ID-340387)</b><br>
                 👥 Total Registered Users: <b id="adminTotalUsers" style="color:#ffd700;">1</b><br>
                 🔗 Your Invite Link: <span id="adminMyInvite" style="color:#00a884; word-break:break-all;">Loading...</span>
-                <button class="btn" style="padding: 6px; font-size: 12px; margin-top: 5px;" onclick="openAllUsersDataModal()">تمام یوزرز کا ڈیٹا دیکھیں 📊</button>
-                <button class="btn" style="padding: 6px; font-size: 12px; margin-top: 5px; background: #2563eb; color:white;" onclick="openAdminPromoApprovalModal()">پینڈنگ پروموشنز اپروو کریں 🛡️</button>
             </div>
         </div>
 
@@ -109,7 +102,7 @@
         <!-- AD TASK WITH CAPTCHA -->
         <div class="card">
             <h3 style="color: #00a884; margin-bottom: 10px;">Ad Task & Captcha</h3>
-            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">پہلے نیچے دیا گیا کیپچا حل کریں، پھر ایڈ دیکھیں (1 منٹ کا وقفہ)</p>
+            <p style="font-size: 12px; color: #8696a0; margin-bottom: 10px;">پہلے نیچے دیا گیا کیپچا حل کریں، پھر ایڈ دیکھیں</p>
             
             <div class="captcha-box">
                 <span id="captchaQuestion" style="font-weight: bold; color: #ffd700; font-size: 16px;">5 + 3 = ?</span>
@@ -122,7 +115,6 @@
         <!-- APPROVED USER PROMOTION LINKS SECTION -->
         <div class="card" style="text-align: right; direction: rtl;">
             <h3 style="color: #ffd700; margin-bottom: 8px; text-align: center;">🌐 ممبرز کی پروموٹ شدہ لنکس (Join & Earn)</h3>
-            <p style="font-size: 11px; color: #8696a0; margin-bottom: 12px; text-align: center;">ایڈمن کی طرف سے منظور شدہ لنکس یہاں شو ہوں گی!</p>
             <div id="userPromoLinksContainer">
                 <p style="font-size: 12px; color: #8696a0; text-align: center;">اس وقت کوئی پروموشن لنک دستیاب نہیں ہے۔</p>
             </div>
@@ -166,10 +158,10 @@
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #00a884; margin-bottom: 12px; text-align: center;">📜 پرائیویسی اور اصول و ضوابط</h3>
         <p style="font-size: 12px; color: #e9edef; line-height: 1.6; margin-bottom: 15px;">
-            1. ہر ایڈ کو لازماً پورا **15 سیکنڈ** دیکھنا ہوگا۔<br>
-            2. اصولوں کی خلاف ورزی پر اکاؤنٹ بلاک یا بیلنس ضبط ہو سکتا ہے۔
+            1. ہر ایڈ کو لازماً پورا 15 سیکنڈ دیکھਣਾ ہوگا۔<br>
+            2. اصولوں کی خلاف ورزی پر اکاؤنٹ بلاک ہو سکتا ہے۔
         </p>
-        <button class="btn" onclick="acceptTermsAndProceed()">میں اصول تسلیم کرتا ہوں (Accept & Continue) ✅</button>
+        <button class="btn" onclick="acceptTermsAndProceed()">میں اصول تسلیم کرتا ہوں ✅</button>
     </div>
 </div>
 
@@ -177,23 +169,16 @@
 <div id="promotionModal" class="modal hidden">
     <div class="modal-content" style="text-align: right; direction: rtl;">
         <h3 style="color: #ffd700; margin-bottom: 10px;">🚀 لنکس اور کیمپین پروموشن</h3>
-        <p style="font-size: 11px; color: #8696a0; margin-bottom: 10px;">
-            ٹائٹل اور ڈسکرپشن لکھیں (ایڈمن اپروول کے بعد لائیو ہوگی)۔
-        </p>
-        
         <input type="text" id="promoTitle" placeholder="عنوان درج کریں">
         <textarea id="promoDesc" placeholder="تفصیل/ڈسکرپشن لکھیں"></textarea>
         <input type="text" id="promoLink" placeholder="اپنا لنک یہاں لکھیں">
-
         <select id="depositMethod">
             <option value="Easypaisa">Easypaisa</option>
             <option value="JazzCash">JazzCash</option>
             <option value="Binance Pay ID">Binance Pay ID</option>
         </select>
-        
-        <input type="number" id="depositAmount" placeholder="رقم درج کریں (₹100 یا $1)">
+        <input type="number" id="depositAmount" placeholder="رقم درج کریں">
         <input type="text" id="transactionId" placeholder="ٹرانزیکشن ID لکھیں">
-
         <button class="btn" onclick="submitPromotionRequest()">سبمٹ برائے ایڈمن اپروول 🚀</button>
         <button class="btn" style="background: #202c33; color: #ef4444; margin-top: 5px;" onclick="closePromotionModal()">بند کریں ❌</button>
     </div>
@@ -234,117 +219,151 @@
     const ADSTERRA_LINK = "https://sixstale.com/f3efetw5?key=3ceb773fc9c7ca64b0cca412512cf6dc";
 
     let isLoginMode = true;
-    let currentUserPhone = localStorage.getItem('activeUser') || null;
-    let userId = "";
-    let userCoins = 0;
     let num1 = 0, num2 = 0;
+    let activePhone = localStorage.getItem('activeUser') || null;
 
-    const DAILY_AD_LIMIT = 25;
-    const AD_TIMER_SECONDS = 15;     
-    const COOLDOWN_SECONDS = 60; 
-    let isBusy = false;
-
-    generateNewCaptcha();
-
-    if (currentUserPhone) {
-        let usersData = JSON.parse(localStorage.getItem('all_users_db') || "{}");
-        let userData = usersData[currentUserPhone];
-        if (userData) {
-            if (!userData.terms_accepted) {
-                document.getElementById('termsModal').classList.remove('hidden');
+    window.onload = function() {
+        generateNewCaptcha();
+        if (activePhone) {
+            let db = JSON.parse(localStorage.getItem('users_database') || "{}");
+            if (db[activePhone]) {
+                if (!db[activePhone].terms_accepted) {
+                    document.getElementById('termsModal').classList.remove('hidden');
+                } else {
+                    loadUserDashboard(activePhone);
+                }
             } else {
-                loadDashboard(currentUserPhone);
+                localStorage.removeItem('activeUser');
             }
-        } else {
-            localStorage.removeItem('activeUser');
         }
-    }
+    };
 
     function generateNewCaptcha() {
         num1 = Math.floor(Math.random() * 10) + 1;
         num2 = Math.floor(Math.random() * 10) + 1;
         let q = document.getElementById('captchaQuestion');
-        let a = document.getElementById('captchaAnswer');
         if(q) q.innerText = `${num1} + ${num2} = ?`;
-        if(a) a.value = "";
     }
 
-    function toggleDropdown() {
-        let menu = document.getElementById('dropdownMenu');
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('authTitle').innerText = isLoginMode ? "Login to Your Account" : "Create New Account";
+        document.getElementById('authBtn').innerText = isLoginMode ? "Login" : "Sign Up";
+        document.getElementById('toggleText').innerText = isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Login";
     }
 
-    function openPromotionModal() {
-        document.getElementById('dropdownMenu').style.display = 'none';
-        document.getElementById('promotionModal').classList.remove('hidden');
-    }
-    function closePromotionModal() { document.getElementById('promotionModal').classList.add('hidden'); }
+    function handleAuth() {
+        let phone = document.getElementById('authPhone').value.trim();
+        let pass = document.getElementById('authPassword').value.trim();
 
-    function openPrivacyModal() {
-        document.getElementById('dropdownMenu').style.display = 'none';
-        document.getElementById('privacyModal').classList.remove('hidden');
-    }
-    function closePrivacyModal() { document.getElementById('privacyModal').classList.add('hidden'); }
-
-    function openAllUsersDataModal() {
-        document.getElementById('dropdownMenu').style.display = 'none';
-        let usersData = JSON.parse(localStorage.getItem('all_users_db') || "{}");
-        let container = document.getElementById('allUsersListContainer');
-        container.innerHTML = "";
-
-        let keys = Object.keys(usersData);
-        if (keys.length === 0) {
-            container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>کوئی یوزر رجسٹرڈ نہیں ہے۔</p>";
-        } else {
-            keys.forEach(ph => {
-                let u = usersData[ph];
-                let row = document.createElement('div');
-                row.className = 'user-data-row';
-                row.innerHTML = `
-                    🆔 آئی ڈی: <b style="color:#00a884;">${u.user_id}</b><br>
-                    📱 فون نمبر: ${ph}<br>
-                    🪙 کوائنز: <b style="color:#ffd700;">${u.coins}</b><br>
-                    👥 ریفرلز: ${u.referral_count || 0}<br>
-                `;
-                container.appendChild(row);
-            });
+        if (!phone || !pass) {
+            alert("براہ کرم فون نمبر اور پاسورڈ دونوں درج کریں!");
+            return;
         }
-        document.getElementById('allUsersDataModal').classList.remove('hidden');
-    }
-    function closeAllUsersDataModal() { document.getElementById('allUsersDataModal').classList.add('hidden'); }
 
-    function openAdminPromoApprovalModal() {
-        document.getElementById('dropdownMenu').style.display = 'none';
-        let pendingList = JSON.parse(localStorage.getItem('user_promos_pending_db') || "[]");
-        let container = document.getElementById('pendingPromoListContainer');
-        container.innerHTML = "";
+        let cleanPhone = phone.replace(/[^0-9]/g, '');
+        let db = JSON.parse(localStorage.getItem('users_database') || "{}");
+        let urlParams = new URLSearchParams(window.location.search);
+        let referrerId = urlParams.get('ref') || "";
 
-        if (pendingList.length === 0) {
-            container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>کوئی پینڈنگ پروموشن موجود نہیں ہے۔</p>";
+        if (isLoginMode) {
+            if (db[cleanPhone] && db[cleanPhone].password === pass) {
+                localStorage.setItem('activeUser', cleanPhone);
+                activePhone = cleanPhone;
+                if (!db[cleanPhone].terms_accepted) {
+                    document.getElementById('termsModal').classList.remove('hidden');
+                } else {
+                    loadUserDashboard(cleanPhone);
+                }
+            } else {
+                alert("❌ غلط فون نمبر یا پاسورڈ!");
+            }
         } else {
-            pendingList.forEach((item, index) => {
-                let row = document.createElement('div');
-                row.className = 'user-data-row';
-                row.innerHTML = `
-                    🆔 آئی ڈی: <b style="color:#00a884;">${item.user_id}</b><br>
-                    📌 عنوان: <b style="color:#ffd700;">${item.title}</b><br>
-                    📝 تفصیل: ${item.desc}<br>
-                    🔗 لنک: <span style="color:#00a884; word-break:break-all;">${item.link}</span><br>
-                    <button class="btn" style="padding:6px; font-size:11px; margin-top:6px; background:#10b981; color:white;" onclick="approvePromo(${index})">اپروو کریں (Approve) ✅</button>
-                    <button class="btn" style="padding:6px; font-size:11px; margin-top:4px; background:#ef4444; color:white;" onclick="rejectPromo(${index})">ریجیکٹ کریں ❌</button>
-                `;
-                container.appendChild(row);
-            });
+            if (db[cleanPhone]) {
+                alert("❌ یہ فون نمبر پہلے سے رجسٹرڈ ہے! براہ کرم لاگ ان کریں۔");
+            } else {
+                let generatedId = (Object.keys(db).length === 0) ? ADMIN_USER_ID : ('ID-' + Math.floor(100000 + Math.random() * 900000));
+                let initialCoins = (generatedId === ADMIN_USER_ID) ? 50000 : 0;
+
+                db[cleanPhone] = {
+                    user_id: generatedId,
+                    password: pass,
+                    coins: initialCoins,
+                    referred_by: referrerId,
+                    referral_count: 0,
+                    terms_accepted: false,
+                    daily_ad_count: 0,
+                    total_ads_watched: 0,
+                    last_ad_date: ""
+                };
+
+                if (referrerId && generatedId !== ADMIN_USER_ID) {
+                    for (let ph in db) {
+                        if (db[ph].user_id === referrerId) {
+                            db[ph].referral_count = (db[ph].referral_count || 0) + 1;
+                            break;
+                        }
+                    }
+                }
+
+                localStorage.setItem('users_database', JSON.stringify(db));
+                localStorage.setItem('activeUser', cleanPhone);
+                activePhone = cleanPhone;
+                alert("✅ اکاؤنٹ کامیابی سے بن گیا ہے!");
+                document.getElementById('termsModal').classList.remove('hidden');
+            }
         }
-        document.getElementById('adminPromoApprovalModal').classList.remove('hidden');
     }
-    function closeAdminPromoApprovalModal() { document.getElementById('adminPromoApprovalModal').classList.add('hidden'); }
 
-    function approvePromo(index) {
-        let pendingList = JSON.parse(localStorage.getItem('user_promos_pending_db') || "[]");
-        let approvedList = JSON.parse(localStorage.getItem('user_promos_approved_db') || "[]");
+    function acceptTermsAndProceed() {
+        let db = JSON.parse(localStorage.getItem('users_database') || "{}");
+        if (db[activePhone]) {
+            db[activePhone].terms_accepted = true;
+            localStorage.setItem('users_database', JSON.stringify(db));
+        }
+        document.getElementById('termsModal').classList.add('hidden');
+        loadUserDashboard(activePhone);
+    }
 
-        let approvedItem = pendingList.splice(index, 1)[0];
-        approvedList.push(approvedItem);
+    function loadUserDashboard(phone) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardScreen').classList.remove('hidden');
 
-        localStorage.setItem('user_promos_pending_db',
+        let db = JSON.parse(localStorage.getItem('users_database') || "{}");
+        let user = db[phone];
+        if (!user) { logout(); return; }
+
+        if (user.user_id === ADMIN_USER_ID && user.coins < 50000) {
+            user.coins = 50000;
+            db[phone] = user;
+            localStorage.setItem('users_database', JSON.stringify(db));
+        }
+
+        document.getElementById('displayUserId').innerText = user.user_id;
+        document.getElementById('coins').innerText = user.coins;
+        document.getElementById('withdrawDollars').innerText = (user.coins * (5 / 50000)).toFixed(2);
+        document.getElementById('totalRefUsers').innerText = user.referral_count || 0;
+
+        let cleanUrl = window.location.href.split('?')[0];
+        let refLink = `${cleanUrl}?ref=${user.user_id}`;
+        document.getElementById('refLink').innerText = refLink;
+
+        if (user.user_id === ADMIN_USER_ID) {
+            document.getElementById('adminPanel').classList.remove('hidden');
+            document.getElementById('adminMenuDataBtn').classList.remove('hidden');
+            document.getElementById('adminMenuPromoBtn').classList.remove('hidden');
+            document.getElementById('adminMyInvite').innerText = refLink;
+            document.getElementById('adminTotalUsers').innerText = Object.keys(db).length;
+        }
+
+        renderPromoLinks();
+    }
+
+    function renderPromoLinks() {
+        let container = document.getElementById('userPromoLinksContainer');
+        let approved = JSON.parse(localStorage.getItem('promos_approved') || "[]");
+        if (approved.length === 0) {
+            container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>اس وقت کوئی پروموشن لنک دستیاب نہیں ہے۔</p>";
+            return;
+        }
+            
