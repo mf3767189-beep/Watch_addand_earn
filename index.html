@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earn App</title>
+    <title>Earn App - Admin Balance Booster & Categories</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 15px; }
+        <style>
+        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 15px; box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; }
         .container { max-width: 450px; margin: 0 auto; background: #1f2c34; padding: 15px; border-radius: 10px; }
         .hidden { display: none !important; }
-        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; box-sizing: border-box; }
+        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; }
         input, select { background: #2a3942; color: #fff; }
         button { background: #00a884; color: #111b21; font-weight: bold; cursor: pointer; }
         button:disabled { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
@@ -20,17 +21,23 @@
         .modal-content { background: #1f2c34; padding: 20px; border-radius: 8px; width: 90%; max-width: 420px; max-height: 80vh; overflow-y: auto; }
         .privacy-box { font-size: 13px; line-height: 1.6; color: #d1d5db; text-align: left; }
         .warning-banner { background: #ef4444; color: #ffffff; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 10px; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; background: #3b82f6; color: #fff; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 <div class="container">
+    <div id="broadcastBanner" class="warning-banner hidden" style="background: #3b82f6; margin-bottom: 10px;"></div>
     <div id="penaltyAlert" class="warning-banner hidden"></div>
+    
+    <!-- Auth Screen -->
     <div id="authScreen">
         <h2>Login / Sign Up</h2>
         <input type="tel" id="phone" placeholder="Phone / Admin Phone">
         <input type="password" id="pass" placeholder="Password">
         <button id="authBtn" onclick="handleAuth()">Login / Sign Up</button>
     </div>
+
+    <!-- Dashboard Screen -->
     <div id="dashboardScreen" class="hidden">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h3>Dashboard</h3>
@@ -38,13 +45,14 @@
         </div>
         <div id="dropdownMenu" class="hidden" style="background:#2a3942; padding:10px; border-radius:6px; margin-bottom:10px;">
             <button id="adminMainBtn" class="hidden" onclick="openAdminDashboardModal()" style="background:#10b981; color:#fff;">👑 Admin Live Dashboard</button>
-            <button onclick="openPromotionModal()">Promote Link</button>
+            <button onclick="openPromotionModal()">📢 Promote Your Link (Deposit)</button>
             <button onclick="openPrivacyModal()">Privacy Policy</button>
             <button onclick="logout()" style="background:#ef4444; color:#fff;">Logout</button>
         </div>
         <div class="card">
             <p>🆔 User ID: <span id="displayUserId">...</span></p>
             <p>🪙 Coins: <b id="coins">0</b></p>
+            <p>💎 Diamonds: <b id="diamonds" style="color:#3b82f6;">0</b></p>
             <p>💵 Balance: <b>$<span id="dollars">0.00</span></b></p>
         </div>
         <div class="card">
@@ -65,15 +73,20 @@
         </div>
         <div class="card">
             <h4>💸 Withdraw Earnings</h4>
-            <p style="font-size: 12px; color: #a0aec0;">Min: $5.00 (50k Coins)</p>
-            <select id="method"><option value="Easypaisa">Easypaisa</option><option value="Jazzcash">Jazzcash</option><option value="Binance">Binance Pay ID</option></select>
+            <p style="font-size: 12px; color: #a0aec0; margin-bottom: 8px;">Minimum Withdrawal: <b>$5.00</b></p>
+            <select id="method">
+                <option value="Easypaisa">Easypaisa</option>
+                <option value="Jazzcash">Jazzcash</option>
+                <option value="Binance">Binance Pay ID</option>
+            </select>
             <input type="text" id="accountNo" placeholder="Account Number / Binance ID">
             <button onclick="withdrawDollars()">Withdraw Dollars ($)</button>
             <button onclick="openSupport()" style="background:#3b82f6; color:#fff; margin-top:5px;">Contact Support</button>
         </div>
     </div>
-    </div>
-    <div id="adminDashboardModal" class="modal hidden">
+                                    </div>
+                                    <!-- Admin Dashboard Modal -->
+<div id="adminDashboardModal" class="modal hidden">
     <div class="modal-content">
         <h3 style="color:#10b981; margin-top:0;">👑 Live Admin Analytics</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 12px;">
@@ -84,31 +97,47 @@
             <div style="background: #202c33; padding: 10px; border-radius: 6px;">🎥 <b>Total Ads:</b> <br><span id="adminLifetimeAds" style="font-size: 16px; color: #8b5cf6;">0</span></div>
             <div style="background: #202c33; padding: 10px; border-radius: 6px;">💰 <b>Coins:</b> <br><span id="adminTotalCoins" style="font-size: 16px;">0</span></div>
         </div>
-        <button onclick="runRetroactivePenaltyCheck()" style="background: #dc2626; color: #fff; margin-bottom: 8px;">🚨 Apply Penalty on Old Users</button>
+        <button onclick="boostMyOwnerBalance()" style="background: #f59e0b; color: #111; margin-bottom: 8px;">⚡ Boost My Admin Balance (+10k Coins)</button>
+        <button onclick="sendGlobalNotification()" style="background: #8b5cf6; color: #fff; margin-bottom: 8px;">📢 Send Broadcast Notification</button>
+        <button onclick="runRetroactivePenaltyCheck()" style="background: #dc2626; color: #fff; margin-bottom: 8px;">🚨 Apply Penalty on All Non-15s Users</button>
         <button onclick="openAllUsersDataModal()" style="background: #3b82f6; color: #fff; margin-bottom: 8px;">🔍 View All Users</button>
-        <button onclick="openAdminPromoApprovalModal()" style="background: #f59e0b; color: #111; margin-bottom: 8px;">📢 Pending Promos</button>
+        <button onclick="openAdminPromoApprovalModal()" style="background: #f59e0b; color: #111; margin-bottom: 8px;">📢 Pending Promos (Approval)</button>
         <button onclick="closeAdminDashboardModal()" style="background: #6b7280; color: #fff;">Close</button>
     </div>
 </div>
+
+<!-- Promotion & Deposit Modal -->
 <div id="promotionModal" class="modal hidden">
     <div class="modal-content">
-        <h3>Submit Promotion</h3>
-        <input type="text" id="promoTitle" placeholder="Title">
+        <h3 style="color:#00a884; margin-top:0;">🚀 Deposit & Promote Link</h3>
+        <p style="font-size: 12px; color: #a0aec0; margin-bottom: 10px;">Select Category & Deposit min 100 PKR:</p>
+        <select id="promoCategory">
+            <option value="Views">Views</option>
+            <option value="Like">Like</option>
+            <option value="Subscribe">Subscribe</option>
+            <option value="Download App">Download App</option>
+            <option value="Register App">Register App</option>
+        </select>
+        <input type="text" id="promoTitle" placeholder="Link Title">
         <input type="text" id="promoDesc" placeholder="Description">
-        <input type="url" id="promoLink" placeholder="Link URL">
-        <select id="depositMethod"><option value="Easypaisa">Easypaisa</option><option value="Jazzcash">Jazzcash</option></select>
-        <input type="number" id="depositAmount" placeholder="Amount Paid (PKR)">
-        <input type="text" id="transactionId" placeholder="Transaction ID">
-        <button onclick="submitPromotionRequest()">Submit</button>
-        <button onclick="closePromotionModal()" style="background:#6b7280; color:#fff;">Close</button>
+        <input type="url" id="promoLink" placeholder="Your Link URL (https://...)">
+        <select id="depositMethod">
+            <option value="Easypaisa">Easypaisa</option>
+            <option value="Jazzcash">Jazzcash</option>
+        </select>
+        <input type="number" id="depositAmount" placeholder="Deposit Amount (Min 100 PKR)" oninput="calculateDiamonds()">
+        <p style="font-size: 11px; color: #3b82f6; margin: 2px 0 8px 0;">💎 Diamonds to spend: <span id="estimatedDiamonds">0</span></p>
+        <input type="text" id="transactionId" placeholder="Enter Transaction ID (Trx ID)">
+        <button onclick="submitPromotionRequest()" style="background:#00a884; color:#111b21;">Submit Link for Approval 🚀</button>
+        <button onclick="closePromotionModal()" style="background:#6b7280; color:#fff; margin-top:5px;">Close</button>
     </div>
 </div>
+
+<!-- Privacy, Users & Approval Modals -->
 <div id="privacyModal" class="modal hidden">
     <div class="modal-content">
         <h3>📜 Terms & Privacy</h3>
-        <div class="privacy-box">
-            <p>सिक्के कमाने के लिए पूरे 15 सेकंड विज्ञापन देखना ज़रूरी है। न्यूनतम विथड्रॉवल $5.00 है।</p>
-        </div>
+        <div class="privacy-box"><p>سिक्के कमाने के लिए पूरे 15 सेकंड विज्ञापन देखना ज़रूरी है। न्यूनतम विथड्रॉवल $5.00 है।</p></div>
         <button onclick="closePrivacyModal()" style="margin-top:15px;">I Understand</button>
     </div>
 </div>
@@ -125,8 +154,8 @@
         <div id="pendingPromoListContainer"></div>
         <button onclick="closeAdminPromoApprovalModal()" style="margin-top:10px; background:#6b7280; color:#fff;">Close</button>
     </div>
-</div>
-    <script>
+    </div>
+        <script>
     const firebaseConfig = {
         apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
         authDomain: "addearn-8e4b6.firebaseapp.com",
@@ -148,7 +177,7 @@
     const USER_PENALTY_COINS = 5;
     const REFERRER_PENALTY_COINS = 1;
 
-    let currentUserPhone = '', userId = '', userCoins = 0, todayAdsWatched = 0, totalAdsWatched = 0;
+    let currentUserPhone = '', userId = '', userCoins = 0, userDiamonds = 0, todayAdsWatched = 0, totalAdsWatched = 0;
     let myReferrerId = null, autoRefId = null, isBusy = false, num1 = 0, num2 = 0, adInterval = null;
 
     window.onload = function() {
@@ -192,7 +221,7 @@
                 let newGeneratedId = (cleanPhone.includes("340387")) ? ADMIN_TARGET_ID : generateUniqueId();
                 let newUserData = {
                     user_id: newGeneratedId, password: pass, phone: cleanPhone,
-                    coins: 0, referral_count: 0, daily_ad_count: 0, total_ads_watched: 0, last_ad_date: '', created_at: new Date().toISOString()
+                    coins: 0, diamonds: 0, referral_count: 0, daily_ad_count: 0, total_ads_watched: 0, last_ad_date: '', created_at: new Date().toISOString()
                 };
                 if (autoRefId) newUserData.referred_by = autoRefId;
                 db.ref('users/' + cleanPhone).set(newUserData).then(() => {
@@ -218,6 +247,15 @@
         document.getElementById('dashboardScreen').classList.remove('hidden');
         let todayISO = new Date().toISOString().split('T')[0];
 
+        db.ref('settings/broadcast_message').on('value', snapshot => {
+            let bMsg = snapshot.val();
+            let bBanner = document.getElementById('broadcastBanner');
+            if (bMsg && bBanner) {
+                bBanner.innerText = "📢 Notice: " + bMsg;
+                bBanner.classList.remove('hidden');
+            }
+        });
+
         db.ref('users/' + phone).on('value', snapshot => {
             let val = snapshot.val();
             if (val) {
@@ -228,6 +266,7 @@
                     userId = newGenId;
                 } else { userId = val.user_id; }
                 userCoins = Number(val.coins) || 0;
+                userDiamonds = Number(val.diamonds) || 0;
                 myReferrerId = val.referred_by || null;
                 let refCount = Number(val.referral_count) || 0;
                 todayAdsWatched = (val.last_ad_date === todayISO) ? (Number(val.daily_ad_count) || 0) : 0;
@@ -260,8 +299,7 @@
             }
         });
         renderPromoLinks();
-    }
-            function startRealtimeAdminAnalytics() {
+    }    function startRealtimeAdminAnalytics() {
         let todayISO = new Date().toISOString().split('T')[0];
         let todayLocal = new Date().toLocaleDateString('en-CA');
         db.ref('users').on('value', snapshot => {
@@ -285,8 +323,21 @@
         });
     }
 
+    function boostMyOwnerBalance() {
+        db.ref('users/' + currentUserPhone + '/coins').transaction(c => (Number(c) || 0) + 10000);
+        db.ref('users/' + currentUserPhone + '/diamonds').transaction(d => (Number(d) || 0) + 500);
+        alert("⚡ Admin Balance Boosted! 10,000 Coins & 500 Diamonds added.");
+    }
+
+    function sendGlobalNotification() {
+        let msg = prompt("Enter broadcast notification message for all users:");
+        if (msg && msg.trim() !== "") {
+            db.ref('settings/broadcast_message').set(msg.trim()).then(() => { alert("✅ Broadcast notification sent!"); });
+        }
+    }
+
     function runRetroactivePenaltyCheck() {
-        if (!confirm("Deduct coins retroactively for past non-15s users?")) return;
+        if (!confirm("Apply penalty on all non-15s users?")) return;
         db.ref('users').once('value').then(snapshot => {
             let usersData = snapshot.val() || {};
             let count = 0;
@@ -306,7 +357,7 @@
                     }
                 }
             });
-            alert(`Done! Penalty applied to ${count} accounts.`);
+            alert(`Penalty applied on ${count} accounts.`);
         });
     }
 
@@ -369,11 +420,7 @@
             } else {
                 clearInterval(coolInterval);
                 isBusy = false; generateNewCaptcha(); document.getElementById('captchaAnswer').value = '';
-                if (todayAdsWatched >= DAILY_AD_LIMIT) {
-                    btn.disabled = true; btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-                } else {
-                    btn.disabled = false; btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-                }
+                btn.disabled = false; btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
             }
         }, 1000);
     }
@@ -389,31 +436,44 @@
                 });
             }
         });
-        }
-            function renderPromoLinks() {
+    }
+
+    function renderPromoLinks() {
         let container = document.getElementById('userPromoLinksContainer');
         if (!container) return;
         db.ref('promos_approved').on('value', snapshot => {
             let approved = snapshot.val() || {};
             if (Object.keys(approved).length === 0) {
-                container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>No promoted links.</p>";
+                container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>No tasks available.</p>";
                 return;
             }
             container.innerHTML = "";
             Object.keys(approved).forEach(key => {
                 let item = approved[key];
+                let reward = item.rewardCoins || 7;
+                let category = item.category || "General";
+                let diamondsSpent = item.assignedDiamonds || 0;
                 let box = document.createElement('div');
                 box.className = 'promo-task-box';
-                box.innerHTML = `<div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div><div style="font-size: 11px; color: #e9edef; margin-bottom: 6px;">${item.desc}</div><a href="${item.link}" target="_blank" onclick="rewardPromo()" style="display:inline-block; background:#00a884; color:#111b21; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">Visit Link 🚀</a>`;
+                box.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;"><span class="badge">📂 ${category}</span><span style="font-size:10px; color:#3b82f6;">💎 Used: ${diamondsSpent}</span></div>
+                    <div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div>
+                    <div style="font-size: 11px; color: #e9edef; margin-bottom: 4px;">${item.desc}</div>
+                    <div style="font-size: 11px; color: #f59e0b; font-weight: bold; margin-bottom: 6px;">🪙 Reward: ${reward} Coins</div>
+                    <a href="${item.link}" target="_blank" onclick="rewardPromo(${reward})" style="display:inline-block; background:#00a884; color:#111b21; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">Visit Link 🚀</a>
+                `;
                 container.appendChild(box);
             });
         });
     }
 
-    function rewardPromo() { if (currentUserPhone && db) { userCoins += 5; db.ref('users/' + currentUserPhone + '/coins').set(userCoins); } }
+    function rewardPromo(rewardAmount) { 
+        if (currentUserPhone && db) { userCoins += rewardAmount; updateBalanceUI(); db.ref('users/' + currentUserPhone + '/coins').set(userCoins); } 
+    }
 
     function updateBalanceUI() {
         document.getElementById('coins').innerText = userCoins;
+        document.getElementById('diamonds').innerText = userDiamonds;
         document.getElementById('dollars').innerText = (userCoins * (5 / 50000)).toFixed(2);
     }
 
@@ -422,45 +482,50 @@
     function closeAdminDashboardModal() { document.getElementById('adminDashboardModal').classList.add('hidden'); }
     function openPromotionModal() { document.getElementById('promotionModal').classList.remove('hidden'); toggleDropdown(); }
     function closePromotionModal() { document.getElementById('promotionModal').classList.add('hidden'); }
+    function calculateDiamonds() {
+        let amt = parseInt(document.getElementById('depositAmount').value) || 0;
+        document.getElementById('estimatedDiamonds').innerText = (amt / 100) * 300;
+    }
+    function submitPromotionRequest() {
+        let category = document.getElementById('promoCategory').value;
+        let title = document.getElementById('promoTitle').value.trim();
+        let desc = document.getElementById('promoDesc').value.trim();
+        let link = document.getElementById('promoLink').value.trim();
+        let depositMethod = document.getElementById('depositMethod').value;
+        let depositAmount = parseInt(document.getElementById('depositAmount').value) || 0;
+        let txId = document.getElementById('transactionId').value.trim();
+        if (!title || !desc || !link || !depositAmount || !txId) { alert("Please fill all fields!"); return; }
+        if (depositAmount < 100) { alert("Minimum deposit is 100 PKR!"); return; }
+        let assignedDiamonds = (depositAmount / 100) * 300;
+        db.ref('promos_pending').push({ user_id: userId, phone: currentUserPhone, category, title, desc, link, depositMethod, depositAmount, assignedDiamonds, txId });
+        document.getElementById('promoTitle').value = ''; document.getElementById('promoDesc').value = ''; document.getElementById('promoLink').value = ''; document.getElementById('depositAmount').value = ''; document.getElementById('transactionId').value = '';
+        closePromotionModal(); alert("Submitted for approval!");
+    }
     function openPrivacyModal() { document.getElementById('privacyModal').classList.remove('hidden'); toggleDropdown(); }
     function closePrivacyModal() { document.getElementById('privacyModal').classList.add('hidden'); }
-
     function openAllUsersDataModal() {
-        let todayISO = new Date().toISOString().split('T')[0];
-        let todayLocal = new Date().toLocaleDateString('en-CA');
         db.ref('users').once('value').then(snapshot => {
             let dbVal = snapshot.val() || {};
             let container = document.getElementById('allUsersListContainer');
             container.innerHTML = "";
             Object.keys(dbVal).forEach(ph => {
                 let u = dbVal[ph];
-                let adsToday = ((u.last_ad_date === todayISO || u.last_ad_date === todayLocal) ? (Number(u.daily_ad_count) || 0) : 0);
-                let statusBadge = adsToday > 0 ? `<span style="background:#10b981; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🟢 Active</span>` : `<span style="background:#ef4444; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">🔴 Inactive</span>`;
-                container.innerHTML += `<div class="user-data-row" style="font-size:12px;"><div style="display:flex; justify-content:space-between;"><b>🆔 ID: ${u.user_id || 'N/A'}</b>${statusBadge}</div><div style="color:#a0aec0;">Phone: ${ph}</div><div>Coins: <b style="color:#00a884;">${u.coins || 0}</b></div><div style="margin-top:8px; display:flex; gap:5px;"><button onclick="modifyCoins('${ph}', 100)" style="padding:4px 8px; background:#10b981; width:auto;">+100</button><button onclick="modifyCoins('${ph}', -100)" style="padding:4px 8px; background:#ef4444; width:auto;">-100</button><button onclick="customCoinsPrompt('${ph}')" style="padding:4px 8px; background:#3b82f6; width:auto;">Edit</button></div></div>`;
+                container.innerHTML += `<div class="user-data-row" style="font-size:12px;"><b>ID: ${u.user_id || 'N/A'}</b> | Phone: ${ph}<br>Coins: ${u.coins || 0} | Diamonds: ${u.diamonds || 0}<br><button onclick="modifyCoins('${ph}', 100)" style="padding:4px; background:#10b981; width:auto;">+100</button> <button onclick="modifyCoins('${ph}', -100)" style="padding:4px; background:#ef4444; width:auto;">-100</button></div>`;
             });
             document.getElementById('allUsersDataModal').classList.remove('hidden');
         });
     }
     function closeAllUsersDataModal() { document.getElementById('allUsersDataModal').classList.add('hidden'); }
-
-    function modifyCoins(phone, amount) {
-        db.ref('users/' + phone + '/coins').transaction(c => Math.max(0, (Number(c) || 0) + amount)).then(() => { alert("Updated!"); openAllUsersDataModal(); });
-    }
-    function customCoinsPrompt(phone) {
-        let amt = parseInt(prompt("Enter amount to add (+) or deduct (-):"));
-        if (!isNaN(amt)) modifyCoins(phone, amt);
-    }
-
+    function modifyCoins(phone, amount) { db.ref('users/' + phone + '/coins').transaction(c => Math.max(0, (Number(c) || 0) + amount)).then(() => { alert("Updated!"); openAllUsersDataModal(); }); }
     function openAdminPromoApprovalModal() {
         db.ref('promos_pending').once('value').then(snapshot => {
             let pending = snapshot.val() || {};
             let container = document.getElementById('pendingPromoListContainer');
-            container.innerHTML = Object.keys(pending).length === 0 ? "<p style='text-align:center; font-size:12px;'>No pending promos.</p>" : "";
+            container.innerHTML = Object.keys(pending).length === 0 ? "<p style='text-align:center;'>No pending promos.</p>" : "";
             Object.keys(pending).forEach(key => {
                 let item = pending[key];
-                container.innerHTML += `<div class="user-data-row">ID: ${item.user_id}<br><b>${item.title}</b><br>${item.depositMethod} (${item.amount} PKR) [Trx: ${item.txId}]<br><button style="background:#10b981; color:#fff; padding:6px; margin-top:5px;" onclick="approvePromo('${key}')">Approve ✅</button></div>`;
+                container.innerHTML += `<div class="user-data-row" style="font-size:12px;"><b>Title:</b> ${item.title}<br><b>Deposit:</b> ${item.depositAmount} PKR<br><button onclick="approvePromo('${key}')" style="background:#10b981; padding:5px;">Approve ✅</button> <button onclick="rejectPromo('${key}')" style="background:#ef4444; padding:5px;">Reject ❌</button></div>`;
             });
-            document.getElementById('adminPromoApprovalModal').classList.add('hidden'); // Fix typo safety
             document.getElementById('adminPromoApprovalModal').classList.remove('hidden');
         });
     }
@@ -468,31 +533,31 @@
     function approvePromo(key) {
         db.ref('promos_pending/' + key).once('value').then(snapshot => {
             let item = snapshot.val();
-            if (item) { db.ref('promos_approved').push(item); db.ref('promos_pending/' + key).remove(); alert("Approved!"); openAdminPromoApprovalModal(); }
+            if (item) {
+                let rewardCoins = parseInt(prompt("Enter reward coins for this task:", "7")) || 7;
+                item.rewardCoins = rewardCoins;
+                db.ref('promos_approved').push(item);
+                db.ref('users').orderByChild('user_id').equalTo(item.user_id).once('value').then(userSnap => {
+                    if (userSnap.exists()) {
+                        let userKey = Object.keys(userSnap.val())[0];
+                        db.ref('users/' + userKey + '/diamonds').transaction(d => (Number(d) || 0) + Number(item.assignedDiamonds));
+                    }
+                });
+                db.ref('promos_pending/' + key).remove();
+                alert("Approved!");
+                openAdminPromoApprovalModal();
+            }
         });
     }
-    function submitPromotionRequest() {
-        let title = document.getElementById('promoTitle').value.trim();
-        let desc = document.getElementById('promoDesc').value.trim();
-        let link = document.getElementById('promoLink').value.trim();
-        let depositMethod = document.getElementById('depositMethod').value;
-        let amount = Number(document.getElementById('depositAmount').value);
-        let txId = document.getElementById('transactionId').value.trim();
-        if (!title || !desc || !link || !amount || !txId) { alert("Fill all fields!"); return; }
-        db.ref('promos_pending').push({ user_id: userId, title, desc, link, depositMethod, amount, txId });
-        closePromotionModal(); alert("Submitted!");
-    }
-    function copyReferralLink() {
-        navigator.clipboard.writeText(document.getElementById('refLink').innerText);
-        alert("Referral Link Copied!");
-    }
+    function rejectPromo(key) { db.ref('promos_pending/' + key).remove(); alert("Rejected."); openAdminPromoApprovalModal(); }
+    function copyReferralLink() { navigator.clipboard.writeText(document.getElementById('refLink').innerText); alert("Copied!"); }
     function withdrawDollars() {
         let method = document.getElementById('method').value;
         let acc = document.getElementById('accountNo').value.trim();
         let currentDollars = Number((userCoins * (5 / 50000)).toFixed(2));
-        if (!acc) { alert("Enter account number / Binance ID!"); return; }
+        if (!acc) { alert("Enter account number!"); return; }
         let isAdmin = (userId === ADMIN_TARGET_ID || currentUserPhone.includes(ADMIN_PHONE_KEY));
-        if (currentDollars < 5.00 && !isAdmin) { alert("Minimum withdrawal is $5.00 (50,000 Coins)!"); return; }
+        if (currentDollars < 5.00 && !isAdmin) { alert("Minimum withdrawal is $5.00!"); return; }
         if (!isAdmin) { userCoins -= 50000; updateBalanceUI(); db.ref('users/' + currentUserPhone + '/coins').set(userCoins); }
         window.open(`https://t.me/Ali69291?text=${encodeURIComponent(`Withdraw ($5):\nID:${userId}\nMethod: ${method}\nAcc:${acc}`)}`, '_blank');
     }
@@ -502,4 +567,4 @@
 </body>
 </html>
 
-    
+            
