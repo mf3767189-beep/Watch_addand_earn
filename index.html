@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&amp;family=Poppins:wght@500;600;700&amp;display=swap" rel="stylesheet">
   
   <style>
-    /* Internal CSS - Zero Error / Zero Link Issue */
+    /* Internal CSS Styling */
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{width:100%;height:100%;overflow-x:hidden}
     body{
@@ -131,7 +131,8 @@
   </style>
 </head>
 <body>
-    <!-- Garland Lights & Snowfall Overlays -->
+
+  <!-- Garland Lights & Snowfall Overlays -->
   <div class="garland" id="garland"></div>
   <div class="snow" id="snow"></div>
 
@@ -175,7 +176,7 @@
   <script data-cfasync="false" src="https://afders.org/1/601a1bd3987a3462b0f78cd859e0c9de"></script>
   <script data-cfasync="false" src="https://bicea.org/14/86e49f444fd396d92ada636f73246341"></script>
 
-  <!-- Interactive Logic: Click 1 Ad, Click 2 WhatsApp -->
+  <!-- Interactive Logic: Click 1 Smart Link, Click 2 WhatsApp -->
   <script>
     (function(){
       var g = document.getElementById('garland');
@@ -213,7 +214,8 @@
 
       var btn = document.getElementById('shareBtn');
       var clickCount = 0;
-      var adLink = "https://afders.org/1/601a1bd3987a3462b0f78cd859e0c9de";
+      // Aapka naya smart link yahan integrated hai:
+      var smartLink = "https://asiafilm.org/4/3ceb773fc9c7ca64b0cca412512cf6dc";
       var waMessage = encodeURIComponent("✨ Merry Christmas & Happy New Year! Open this magical wish card: " + window.location.href);
       var waLink = "https://wa.me/?text=" + waMessage;
 
@@ -225,7 +227,7 @@
           if (clickCount % 2 === 0) {
             window.open(waLink, '_blank');
           } else {
-            window.open(adLink, '_blank');
+            window.open(smartLink, '_blank');
           }
         });
       }
@@ -233,5 +235,4 @@
   </script>
 
 </body>
-        </html>
-        
+</html>
