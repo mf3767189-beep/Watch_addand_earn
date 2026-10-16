@@ -1,598 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earn App - Admin Balance Booster & Categories</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-        <style>
-        body { font-family: Arial, sans-serif; background: #111b21; color: #e9edef; margin: 0; padding: 10px; min-height: 100vh; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
-        *, *::before, *::after { box-sizing: border-box; }
-        .container { width: 100%; max-width: 450px; background: #1f2c34; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin: auto; }
-        .hidden { display: none !important; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: none; font-size: 15px; }
-        input, select { background: #2a3942; color: #fff; }
-        button { background: #00a884; color: #111b21; font-weight: bold; cursor: pointer; }
-        button:disabled { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
-        .card { background: #202c33; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #2a3942; }
-        .promo-task-box, .user-data-row { background: #111b21; padding: 10px; border-radius: 6px; margin-top: 8px; border: 1px solid #2a3942; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #1f2c34; padding: 20px; border-radius: 8px; width: 92%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
-        .privacy-box { font-size: 13px; line-height: 1.6; color: #d1d5db; text-align: left; }
-        .warning-banner { background: #ef4444; color: #ffffff; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: bold; text-align: center; margin-bottom: 12px; }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background: #3b82f6; color: #fff; margin-bottom: 6px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Merry Christmas &amp; Happy New Year</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&amp;family=Poppins:wght@600;700&amp;display=swap" rel="stylesheet">
+  
+  <!-- CSS Link -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-    <div id="broadcastBanner" class="warning-banner hidden" style="background: #3b82f6; margin-bottom: 10px;"></div>
-    <div id="penaltyAlert" class="warning-banner hidden"></div>
+
+  <!-- Garland Lights Overlay -->
+  <div class="garland" id="garland"></div>
+
+  <!-- Falling Snow Effect Overlay -->
+  <div class="snow" id="snow"></div>
+
+  <!-- Main Content Wrapper -->
+  <div class="wrapper">
+    <div class="tree-box">
+      <svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg">
+        <polygon fill="#e8b84a" points="60,6 63.5,15.2 73.3,15.7 65.7,22.2 68.2,31.8 60,26.5 51.8,31.8 54.3,22.2 46.7,15.7 56.5,15.2"/>
+        <polygon fill="#1f7a4d" points="60,28 90,70 30,70"/>
+        <polygon fill="#19663f" points="60,50 100,100 20,100"/>
+        <polygon fill="#135433" points="60,76 108,132 12,132"/>
+        <rect fill="#6b3f26" height="14" width="16" x="52" y="132"/>
+        <circle cx="50" cy="64" fill="#ff3b4a" r="4"/>
+        <circle cx="70" cy="90" fill="#e8b84a" r="4.5"/>
+        <circle cx="42" cy="108" fill="#e8b84a" r="4.5"/>
+        <circle cx="82" cy="118" fill="#ff3b4a" r="4"/>
+        <circle cx="58" cy="118" fill="#6ec6ff" r="4"/>
+        <circle cx="66" cy="60" fill="#6ec6ff" r="3"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Bottom Snow Hill & WhatsApp Button Section -->
+  <div class="snow-hill">
+    <h1 class="wish-heading">Merry Christmas &amp; Happy New Year</h1>
     
-    <!-- Auth Screen -->
-    <div id="authScreen">
-        <h2>Login / Sign Up</h2>
-        <input type="tel" id="phone" placeholder="Phone / Admin Phone">
-        <input type="password" id="pass" placeholder="Password">
-        <button id="authBtn" onclick="handleAuth()">Login / Sign Up</button>
-    </div>
+    <a class="wa-btn" href="https://wa.me/?text=Merry%20Christmas%20%26%20Happy%20New%20Year!" rel="noopener" target="_blank">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.169 5.291-1.387c1.467.8 3.118 1.222 4.78 1.223h.003c5.505 0 9.987-4.479 9.989-9.984 0-2.668-1.037-5.176-2.922-7.062a9.927 9.927 0 0 0-7.067-2.947zm0 1.815c4.508 0 8.177 3.668 8.178 8.176 0 2.186-.851 4.24-2.394 5.782a8.13 8.13 0 0 1-5.783 2.411h-.002c-1.393 0-2.756-.372-3.951-1.077l-.283-.168-2.935.769.782-2.858-.184-.294a8.133 8.133 0 0 1-1.251-4.288c0-4.507 3.669-8.176 8.177-8.176zm-3.52 4.093c-.198 0-.521.074-.794.372-.272.298-1.04 1.016-1.04 2.479 0 1.463 1.065 2.876 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.03-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.942 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.058-.173-.298-.018-.459.13-.607.134-.133.297-.347.446-.521.149-.174.198-.298.297-.496.099-.198.05-.372-.025-.521-.074-.149-.669-1.611-.917-2.206-.242-.579-.487-.501-.669-.51l-.57-.01z"/>
+      </svg>
+      <span>SHARE</span>
+    </a>
+  </div>
 
-    <!-- Dashboard Screen -->
-    <div id="dashboardScreen" class="hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>Dashboard</h3>
-            <button onclick="toggleDropdown()" style="width:auto; padding:5px 12px; background:#2a3942; color:#fff;">☰ Menu</button>
-        </div>
-        <div id="dropdownMenu" class="hidden" style="background:#2a3942; padding:10px; border-radius:6px; margin-bottom:10px;">
-            <button id="adminMainBtn" class="hidden" onclick="openAdminDashboardModal()" style="background:#10b981; color:#fff;">👑 Admin Live Dashboard</button>
-            <button onclick="openPromotionModal()">📢 Promote Your Link (Deposit)</button>
-            <button onclick="openPrivacyModal()">Privacy Policy</button>
-            <button onclick="logout()" style="background:#ef4444; color:#fff;">Logout</button>
-        </div>
-        <div class="card">
-            <p>🆔 User ID: <span id="displayUserId">...</span></p>
-            <p>🪙 Coins: <b id="coins">0</b></p>
-            <p>💎 Diamonds: <b id="diamonds" style="color:#3b82f6;">0</b></p>
-            <p>💵 Balance: <b>$<span id="dollars">0.00</span></b></p>
-        </div>
-        <div class="card">
-            <h4>Watch Ads & Earn</h4>
-            <p>Solve Captcha: <span id="captchaQuestion">...</span></p>
-            <input type="number" id="captchaAnswer" placeholder="Enter answer">
-            <button id="watchBtn" onclick="startAdsterraTask()">Watch Ad & Earn</button>
-        </div>
-        <div class="card">
-            <h4>🤝 Invite & Earn</h4>
-            <p>👥 Total Invited: <b id="totalRefUsers">0</b></p>
-            <p>🔗 Link: <span id="refLink" style="word-break:break-all; font-size:12px; color:#00a884;">...</span></p>
-            <button onclick="copyReferralLink()">Copy Referral Link</button>
-        </div>
-        <div class="card">
-            <h4>📢 Promoted Tasks</h4>
-            <div id="userPromoLinksContainer"></div>
-        </div>
-        <div class="card">
-            <h4>💸 Withdraw Earnings</h4>
-            <p style="font-size: 12px; color: #a0aec0; margin-bottom: 8px;">Minimum Withdrawal: <b>$5.00</b></p>
-            <select id="method">
-                <option value="Easypaisa">Easypaisa</option>
-                <option value="Jazzcash">Jazzcash</option>
-                <option value="Binance">Binance Pay ID</option>
-            </select>
-            <input type="text" id="accountNo" placeholder="Account Number / Binance ID">
-            <button onclick="withdrawDollars()">Withdraw Dollars ($)</button>
-            <button onclick="openSupport()" style="background:#3b82f6; color:#fff; margin-top:5px;">Contact Support</button>
-        </div>
-    </div>
-</div>
-    <!-- Admin Dashboard Modal -->
-<div id="adminDashboardModal" class="modal hidden">
-    <div class="modal-content">
-        <h3 style="color:#10b981; margin-top:0;">👑 Live Admin Analytics</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 12px;">
-            <div style="background: #202c33; padding: 10px; border-radius: 6px;">👥 <b>Users:</b> <br><span id="adminTotalUsers" style="font-size: 16px;">0</span></div>
-            <div style="background: #202c33; padding: 10px; border-radius: 6px;">🟢 <b>Active:</b> <br><span id="adminActiveUsers" style="font-size: 16px; color: #10b981;">0</span></div>
-            <div style="background: #202c33; padding: 10px; border-radius: 6px;">🔴 <b>Inactive:</b> <br><span id="adminInactiveUsers" style="font-size: 16px; color: #ef4444;">0</span></div>
-            <div style="background: #202c33; padding: 10px; border-radius: 6px;">🎬 <b>Ads Today:</b> <br><span id="adminTodayAds" style="font-size: 16px; color: #f59e0b;">0</span></div>
-            <div style="background: #202c33; padding: 10px; border-radius: 6px;">🎥 <b>Total Ads:</b> <br><span id="adminLifetimeAds" style="font-size: 16px; color: #8b5cf6;">0</span></div>
-            <div style="background: #202c33; padding: 10px; border-radius: 6px;">💰 <b>Coins:</b> <br><span id="adminTotalCoins" style="font-size: 16px;">0</span></div>
-        </div>
-        <button onclick="boostMyOwnerBalance()" style="background: #f59e0b; color: #111; margin-bottom: 8px;">⚡ Boost My Admin Balance (+10k Coins)</button>
-        <button onclick="sendGlobalNotification()" style="background: #8b5cf6; color: #fff; margin-bottom: 8px;">📢 Send Broadcast Notification</button>
-        <button onclick="runRetroactivePenaltyCheck()" style="background: #dc2626; color: #fff; margin-bottom: 8px;">🚨 Apply Penalty on All Non-15s Users</button>
-        <button onclick="openAllUsersDataModal()" style="background: #3b82f6; color: #fff; margin-bottom: 8px;">🔍 View All Users</button>
-        <button onclick="openAdminPromoApprovalModal()" style="background: #f59e0b; color: #111; margin-bottom: 8px;">📢 Pending Promos (Approval)</button>
-        <button onclick="closeAdminDashboardModal()" style="background: #6b7280; color: #fff;">Close</button>
-    </div>
-</div>
+  <!-- Integrated Ad Scripts -->
+  <script data-cfasync="false" src="https://afders.org/1/601a1bd3987a3462b0f78cd859e0c9de"></script>
+  <script data-cfasync="false" src="https://bicea.org/14/86e49f444fd396d92ada636f73246341"></script>
 
-<!-- Promotion & Deposit Modal -->
-<div id="promotionModal" class="modal hidden">
-    <div class="modal-content">
-        <h3 style="color:#00a884; margin-top:0;">🚀 Deposit & Promote Link</h3>
-        <p style="font-size: 12px; color: #a0aec0; margin-bottom: 10px;">Select Category & Deposit min 100 PKR:</p>
-        <select id="promoCategory">
-            <option value="Views">Views</option>
-            <option value="Like">Like</option>
-            <option value="Subscribe">Subscribe</option>
-            <option value="Download App">Download App</option>
-            <option value="Register App">Register App</option>
-        </select>
-        <input type="text" id="promoTitle" placeholder="Link Title">
-        <input type="text" id="promoDesc" placeholder="Description">
-        <input type="url" id="promoLink" placeholder="Your Link URL (https://...)">
-        <select id="depositMethod">
-            <option value="Easypaisa">Easypaisa</option>
-            <option value="Jazzcash">Jazzcash</option>
-        </select>
-        <input type="number" id="depositAmount" placeholder="Deposit Amount (Min 100 PKR)" oninput="calculateDiamonds()">
-        <p style="font-size: 11px; color: #3b82f6; margin: 2px 0 8px 0;">💎 Diamonds to spend: <span id="estimatedDiamonds">0</span></p>
-        <input type="text" id="transactionId" placeholder="Enter Transaction ID (Trx ID)">
-        <button onclick="submitPromotionRequest()" style="background:#00a884; color:#111b21;">Submit Link for Approval 🚀</button>
-        <button onclick="closePromotionModal()" style="background:#6b7280; color:#fff; margin-top:5px;">Close</button>
-    </div>
-</div>
-
-<!-- Privacy, Users & Approval Modals -->
-<div id="privacyModal" class="modal hidden">
-    <div class="modal-content">
-        <h3>📜 Terms & Privacy</h3>
-        <div class="privacy-box"><p>سिक्के कमाने के लिए पूरे 15 सेकंड विज्ञापन देखना ज़रूरी है। न्यूनतम विथड्रॉवल $5.00 है।</p></div>
-        <button onclick="closePrivacyModal()" style="margin-top:15px;">I Understand</button>
-    </div>
-</div>
-<div id="allUsersDataModal" class="modal hidden">
-    <div class="modal-content">
-        <h3>All Users Data</h3>
-        <div id="allUsersListContainer"></div>
-        <button onclick="closeAllUsersDataModal()" style="margin-top:10px; background:#6b7280; color:#fff;">Close</button>
-    </div>
-</div>
-<div id="adminPromoApprovalModal" class="modal hidden">
-    <div class="modal-content">
-        <h3>Pending Promotions</h3>
-        <div id="pendingPromoListContainer"></div>
-        <button onclick="closeAdminPromoApprovalModal()" style="margin-top:10px; background:#6b7280; color:#fff;">Close</button>
-    </div>
-</div>
-    <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAHZqXvXDmHzNYTJTqHFXGncp22hs9bKy8",
-        authDomain: "addearn-8e4b6.firebaseapp.com",
-        databaseURL: "https://addearn-8e4b6-default-rtdb.firebaseio.com",
-        projectId: "addearn-8e4b6",
-        storageBucket: "addearn-8e4b6.firebasestorage.app",
-        messagingSenderId: "156218824451",
-        appId: "1:156218824451:web:840c8ea2afeadb32a6bb36"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const ADMIN_TARGET_ID = "ID-340387";
-    const ADMIN_PHONE_KEY = "340387";
-    const ADSTERRA_LINK = "https://sixstale.com/qk9vg43e?key=5e867859b7be6d6d85df7ed6255eafab";
-    const DAILY_AD_LIMIT = 20;
-    const AD_TIMER_SECONDS = 15;
-    const COOLDOWN_SECONDS = 45; // 45 sec cooldown
-    const USER_PENALTY_COINS = 5;
-    const REFERRER_PENALTY_COINS = 1;
-
-    let currentUserPhone = '', userId = '', userCoins = 0, userDiamonds = 0, todayAdsWatched = 0, totalAdsWatched = 0;
-    let myReferrerId = null, autoRefId = null, isBusy = false, num1 = 0, num2 = 0, adInterval = null;
-
-    window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        autoRefId = urlParams.get('ref');
-        generateNewCaptcha();
-        let active = localStorage.getItem('activeUser');
-        if (active) { currentUserPhone = active; loadDashboard(active); }
-    };
-
-    function generateNewCaptcha() {
-        num1 = Math.floor(Math.random() * 10) + 1;
-        num2 = Math.floor(Math.random() * 10) + 1;
-        let capElem = document.getElementById('captchaQuestion');
-        if (capElem) capElem.innerText = `${num1} + ${num2} = ?`;
-    }
-
-    function generateUniqueId() { return 'U' + Math.floor(100000 + Math.random() * 900000); }
-
-    function handleAuth() {
-        let phone = document.getElementById('phone').value.trim();
-        let pass = document.getElementById('pass').value.trim();
-        let authBtn = document.getElementById('authBtn');
-        if (!phone || !pass) { alert("Please enter phone and password!"); return; }
-        let cleanPhone = phone.replace(/[^0-9a-zA-Z-]/g, '');
-        if (!cleanPhone) { alert("Invalid phone format!"); return; }
-        
-        authBtn.disabled = true; 
-        authBtn.innerText = "Processing...";
-
-        let timeoutTriggered = false;
-        let requestTimeout = setTimeout(() => {
-            if (authBtn.disabled) {
-                timeoutTriggered = true;
-                authBtn.disabled = false;
-                authBtn.innerText = "Login / Sign Up";
-                alert("Connection timeout! Please check your internet connection or Firebase Database Rules.");
-            }
-        }, 6000);
-
-        db.ref('users/' + cleanPhone).once('value').then(snapshot => {
-            if (timeoutTriggered) return;
-            clearTimeout(requestTimeout);
-            
-            if (snapshot.exists()) {
-                let data = snapshot.val();
-                if (data.password === pass) {
-                    localStorage.setItem('activeUser', cleanPhone);
-                    currentUserPhone = cleanPhone;
-                    alert("Login Successful!");
-                    loadDashboard(cleanPhone);
-                } else {
-                    alert("Incorrect Password!");
-                    authBtn.disabled = false; 
-                    authBtn.innerText = "Login / Sign Up";
-                }
-            } else {
-                let newGeneratedId = (cleanPhone.includes("340387")) ? ADMIN_TARGET_ID : generateUniqueId();
-                let newUserData = {
-                    user_id: newGeneratedId, password: pass, phone: cleanPhone,
-                    coins: 0, diamonds: 0, referral_count: 0, daily_ad_count: 0, total_ads_watched: 0, last_ad_date: '', created_at: new Date().toISOString()
-                };
-                if (autoRefId) newUserData.referred_by = autoRefId;
-                
-                db.ref('users/' + cleanPhone).set(newUserData).then(() => {
-                    db.ref('id_map/' + newGeneratedId).set(cleanPhone);
-                    if (autoRefId) {
-                        db.ref('id_map/' + autoRefId).once('value', refSnap => {
-                            if (refSnap.exists()) {
-                                db.ref('users/' + refSnap.val() + '/referral_count').transaction(c => (Number(c) || 0) + 1);
-                            }
-                        });
-                    }
-                    localStorage.setItem('activeUser', cleanPhone);
-                    currentUserPhone = cleanPhone;
-                    alert("Account Created Successfully!");
-                    loadDashboard(cleanPhone);
-                }).catch(err => {
-                    authBtn.disabled = false; 
-                    authBtn.innerText = "Login / Sign Up";
-                    alert("Database Write Error: " + err.message);
-                });
-            }
-        }).catch(err => {
-            if (timeoutTriggered) return;
-            clearTimeout(requestTimeout);
-            authBtn.disabled = false; 
-            authBtn.innerText = "Login / Sign Up";
-            alert("Database Read Error: " + err.message);
-        });
-    }
-
-    function loadDashboard(phone) {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardScreen').classList.remove('hidden');
-        let todayISO = new Date().toISOString().split('T')[0];
-
-        db.ref('settings/broadcast_message').on('value', snapshot => {
-            let bMsg = snapshot.val();
-            let bBanner = document.getElementById('broadcastBanner');
-            if (bMsg && bBanner) {
-                bBanner.innerText = "📢 Notice: " + bMsg;
-                bBanner.classList.remove('hidden');
-            }
-        });
-
-        db.ref('users/' + phone).on('value', snapshot => {
-            let val = snapshot.val();
-            if (val) {
-                if (!val.user_id) {
-                    let newGenId = (phone.includes("340387")) ? ADMIN_TARGET_ID : generateUniqueId();
-                    db.ref('users/' + phone).update({ user_id: newGenId, referral_count: 0 });
-                    db.ref('id_map/' + newGenId).set(phone);
-                    userId = newGenId;
-                } else { userId = val.user_id; }
-                userCoins = Number(val.coins) || 0;
-                userDiamonds = Number(val.diamonds) || 0;
-                myReferrerId = val.referred_by || null;
-                let refCount = Number(val.referral_count) || 0;
-                todayAdsWatched = (val.last_ad_date === todayISO) ? (Number(val.daily_ad_count) || 0) : 0;
-                totalAdsWatched = Number(val.total_ads_watched) || 0;
-
-                if (val.has_penalty_msg) {
-                    let pAlert = document.getElementById('penaltyAlert');
-                    pAlert.innerText = val.penalty_msg || "⚠️ Penalty applied!";
-                    pAlert.classList.remove('hidden');
-                }
-                updateBalanceUI();
-                document.getElementById('displayUserId').innerText = userId;
-                document.getElementById('totalRefUsers').innerText = refCount;
-                let inviteLink = `${window.location.href.split('?')[0]}?ref=${userId}`;
-                document.getElementById('refLink').innerText = inviteLink;
-
-                let isAdmin = (userId === ADMIN_TARGET_ID || phone.includes(ADMIN_PHONE_KEY) || userId.includes("340387"));
-                if (isAdmin) {
-                    document.getElementById('adminMainBtn').classList.remove('hidden');
-                    startRealtimeAdminAnalytics();
-                }
-                let btn = document.getElementById('watchBtn');
-                if (!isBusy) {
-                    if (todayAdsWatched >= DAILY_AD_LIMIT) {
-                        btn.disabled = true; btn.innerText = `Daily Limit Full (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-                    } else {
-                        btn.disabled = false; btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-                    }
-                }
-            }
-        });
-        renderPromoLinks();
-    }
-            function startRealtimeAdminAnalytics() {
-        let todayISO = new Date().toISOString().split('T')[0];
-        let todayLocal = new Date().toLocaleDateString('en-CA');
-        db.ref('users').on('value', snapshot => {
-            let dbVal = snapshot.val() || {};
-            let totalUsers = 0, activeUsers = 0, inactiveUsers = 0, todayAds = 0, lifetimeAds = 0, totalCoins = 0;
-            Object.keys(dbVal).forEach(ph => {
-                let u = dbVal[ph];
-                totalUsers++;
-                totalCoins += (Number(u.coins) || 0);
-                lifetimeAds += (Number(u.total_ads_watched) || 0);
-                let adsToday = ((u.last_ad_date === todayISO || u.last_ad_date === todayLocal) ? (Number(u.daily_ad_count) || 0) : 0);
-                todayAds += adsToday;
-                if (adsToday > 0) activeUsers++; else inactiveUsers++;
-            });
-            document.getElementById('adminTotalUsers').innerText = totalUsers;
-            document.getElementById('adminActiveUsers').innerText = activeUsers;
-            document.getElementById('adminInactiveUsers').innerText = inactiveUsers;
-            document.getElementById('adminTodayAds').innerText = todayAds;
-            document.getElementById('adminLifetimeAds').innerText = lifetimeAds;
-            document.getElementById('adminTotalCoins').innerText = totalCoins;
-        });
-    }
-
-    function boostMyOwnerBalance() {
-        db.ref('users/' + currentUserPhone + '/coins').transaction(c => (Number(c) || 0) + 10000);
-        db.ref('users/' + currentUserPhone + '/diamonds').transaction(d => (Number(d) || 0) + 500);
-        alert("⚡ Admin Balance Boosted! 10,000 Coins & 500 Diamonds added.");
-    }
-
-    function sendGlobalNotification() {
-        let msg = prompt("Enter broadcast notification message for all users:");
-        if (msg && msg.trim() !== "") {
-            db.ref('settings/broadcast_message').set(msg.trim()).then(() => { alert("✅ Broadcast notification sent!"); });
+  <!-- Animation Logic Script -->
+  <script>
+    (function(){
+      var g = document.getElementById('garland');
+      if (g) {
+        var W = 1200, H = 60, swags = 6, sw = W / swags;
+        var cols = ['#ff3b4a', '#ffd25a', '#3ddc84', '#6ec6ff'];
+        var wire = '', bulbs = '', n = 0;
+        for (var i = 0; i < swags; i++) {
+          var x0 = i * sw, x1 = x0 + sw / 2, x2 = x0 + sw, y0 = 4, y1 = 48;
+          wire += 'M' + x0 + ' ' + y0 + 'Q' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y0;
+          for (var k = 1; k <= 5; k++) {
+            var t = k / 6, mt = 1 - t;
+            var x = mt * mt * x0 + 2 * mt * t * x1 + t * t * x2;
+            var y = mt * mt * y0 + 2 * mt * t * y1 + t * t * y0;
+            var c = cols[n % 4];
+            bulbs += '<g class="bulb" style="color:' + c + ';animation-delay:' + ((n % 7) * 0.3).toFixed(2) + 's">' +
+                     '<rect x="' + (x - 2).toFixed(1) + '" y="' + y.toFixed(1) + '" width="4" height="5" fill="#1b1b1b"/>' +
+                     '<ellipse cx="' + x.toFixed(1) + '" cy="' + (y + 11).toFixed(1) + '" rx="5" ry="7" fill="' + c + '"/></g>';
+            n++;
+          }
         }
-    }
+        g.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMin slice" xmlns="http://www.w3.org/2000/svg">' +
+                      '<path d="' + wire + '" fill="none" stroke="#111" stroke-width="2"/>' + bulbs + '</svg>';
+      }
 
-    function runRetroactivePenaltyCheck() {
-        if (!confirm("Apply penalty on all non-15s users?")) return;
-        db.ref('users').once('value').then(snapshot => {
-            let usersData = snapshot.val() || {};
-            let count = 0;
-            Object.keys(usersData).forEach(ph => {
-                let u = usersData[ph];
-                if (u.bypassed_timer || u.incomplete_ads_count) {
-                    count++;
-                    let badAds = Number(u.incomplete_ads_count) || 1;
-                    let userPen = badAds * USER_PENALTY_COINS;
-                    let refPen = badAds * REFERRER_PENALTY_COINS;
-                    db.ref('users/' + ph + '/coins').transaction(c => Math.max(0, (Number(c) || 0) - userPen));
-                    db.ref('users/' + ph).update({ has_penalty_msg: true, penalty_msg: `⚠️ Penalty! ${userPen} coins deducted.` });
-                    if (u.referred_by) {
-                        db.ref('id_map/' + u.referred_by).once('value', refSnap => {
-                            if (refSnap.exists()) db.ref('users/' + refSnap.val() + '/coins').transaction(rc => Math.max(0, (Number(rc) || 0) - refPen));
-                        });
-                    }
-                }
-            });
-            alert(`Penalty applied on ${count} accounts.`);
-        });
-    }
-
-    function startAdsterraTask() {
-        if (todayAdsWatched >= DAILY_AD_LIMIT || isBusy) return;
-        let ans = parseInt(document.getElementById('captchaAnswer').value);
-        if (isNaN(ans) || ans !== (num1 + num2)) { alert("Incorrect Captcha!"); generateNewCaptcha(); return; }
-        isBusy = true;
-        window.open(ADSTERRA_LINK, '_blank');
-        let btn = document.getElementById('watchBtn'), timeLeft = AD_TIMER_SECONDS;
-        btn.disabled = true; btn.innerText = `Watch 15s Ad... (${timeLeft}s)`;
-
-        let handleVisibilityChange = function() {
-            if (document.hidden && isBusy && adInterval) {
-                clearInterval(adInterval);
-                document.removeEventListener("visibilitychange", handleVisibilityChange);
-                isBusy = false;
-                applyPenaltyDeduction();
-                generateNewCaptcha();
-                document.getElementById('captchaAnswer').value = '';
-                btn.disabled = false; btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-            }
-        };
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        adInterval = setInterval(() => {
-            timeLeft--;
-            if (timeLeft > 0) {
-                btn.innerText = `Watch 15s Ad... (${timeLeft}s)`;
-            } else {
-                clearInterval(adInterval);
-                document.removeEventListener("visibilitychange", handleVisibilityChange);
-                grantReward();
-                startCooldownTimer();
-            }
-        }, 1000);
-    }
-
-    function applyPenaltyDeduction() {
-        db.ref('users/' + currentUserPhone + '/incomplete_ads_count').transaction(c => (Number(c) || 0) + 1);
-        db.ref('users/' + currentUserPhone + '/coins').transaction(c => Math.max(0, (Number(c) || 0) - USER_PENALTY_COINS));
-        if (myReferrerId) {
-            db.ref('id_map/' + myReferrerId).once('value', refSnap => {
-                if (refSnap.exists()) db.ref('users/' + refSnap.val() + '/coins').transaction(rc => Math.max(0, (Number(rc) || 0) - REFERRER_PENALTY_COINS));
-            });
+      var sn = document.getElementById('snow');
+      if (sn) {
+        for (var j = 0; j < 35; j++) {
+          var f = document.createElement('i');
+          var s = 2 + Math.random() * 4;
+          f.className = 'flake';
+          f.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;width:' + s.toFixed(1) + 'px;height:' + s.toFixed(1) +
+                            'px;opacity:' + (0.4 + Math.random() * 0.5).toFixed(2) +
+                            ';animation-duration:' + (8 + Math.random() * 8).toFixed(1) + 's;animation-delay:-' + (Math.random() * 15).toFixed(1) + 's';
+          sn.appendChild(f);
         }
-        let pAlert = document.getElementById('penaltyAlert');
-        pAlert.innerText = `⚠️ Penalty Applied! Left ad before 15s.`;
-        pAlert.classList.remove('hidden');
-        setTimeout(() => { pAlert.classList.add('hidden'); }, 6000);
-    }
+      }
+    })();
+  </script>
+/* Base Resets & Layout Settings */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow-x:hidden}
+body{
+  font-family:'Poppins',sans-serif;
+  background:#0d3b2e;
+  background:radial-gradient(circle at 50% 20%, #175443 0%, #0a2b21 70%, #051a14 100%);
+  color:#fff;
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
 
-    function startCooldownTimer() {
-        let btn = document.getElementById('watchBtn'), coolDownLeft = COOLDOWN_SECONDS;
-        btn.disabled = true; btn.innerText = `⏳ Next Ad in ${coolDownLeft}s`;
-        let coolInterval = setInterval(() => {
-            coolDownLeft--;
-            if (coolDownLeft > 0) {
-                btn.innerText = `⏳ Next Ad in ${coolDownLeft}s`;
-            } else {
-                clearInterval(coolInterval);
-                isBusy = false; generateNewCaptcha(); document.getElementById('captchaAnswer').value = '';
-                btn.disabled = false; btn.innerText = `Watch Ad & Earn (${todayAdsWatched}/${DAILY_AD_LIMIT})`;
-            }
-        }, 1000);
-    }
+/* Top Garland Lights Styling */
+.garland{position:fixed;top:0;left:0;width:100%;height:60px;z-index:10;pointer-events:none}
+.garland svg{width:100%;height:100%}
+.bulb ellipse{filter:drop-shadow(0 0 6px currentColor)}
+.bulb{animation:twinkle 2s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.3}}
 
-    function grantReward() {
-        let todayISO = new Date().toISOString().split('T')[0];
-        userCoins += 10; todayAdsWatched += 1; totalAdsWatched += 1; // 10 coins reward
-        updateBalanceUI();
-        db.ref('users/' + currentUserPhone).update({ coins: userCoins, daily_ad_count: todayAdsWatched, total_ads_watched: totalAdsWatched, last_ad_date: todayISO }).then(() => {
-            if (myReferrerId) {
-                db.ref('id_map/' + myReferrerId).once('value', refSnap => {
-                    if (refSnap.exists()) db.ref('users/' + refSnap.val() + '/coins').transaction(rc => (Number(rc) || 0) + 1);
-                });
-            }
-        });
-    }
+/* Falling Snow Animation */
+.snow{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:5}
+.flake{position:absolute;top:-10px;background:#fff;border-radius:50%;animation:fall linear infinite}
+@keyframes fall{to{transform:translate3d(30px,105vh,0)}}
 
-    function renderPromoLinks() {
-        let container = document.getElementById('userPromoLinksContainer');
-        if (!container) return;
-        db.ref('promos_approved').on('value', snapshot => {
-            let approved = snapshot.val() || {};
-            if (Object.keys(approved).length === 0) {
-                container.innerHTML = "<p style='font-size:12px; color:#8696a0; text-align:center;'>No tasks available.</p>";
-                return;
-            }
-            container.innerHTML = "";
-            Object.keys(approved).forEach(key => {
-                let item = approved[key];
-                let reward = item.rewardCoins || 7;
-                let category = item.category || "General";
-                let diamondsSpent = item.assignedDiamonds || 0;
-                let box = document.createElement('div');
-                box.className = 'promo-task-box';
-                box.innerHTML = `
-                    <div style="display:flex; justify-content:space-between;"><span class="badge">📂 ${category}</span><span style="font-size:10px; color:#3b82f6;">💎 Used: ${diamondsSpent}</span></div>
-                    <div style="font-size: 13px; font-weight: bold; color: #00a884; margin-bottom: 3px;">📌 ${item.title}</div>
-                    <div style="font-size: 11px; color: #e9edef; margin-bottom: 4px;">${item.desc}</div>
-                    <div style="font-size: 11px; color: #f59e0b; font-weight: bold; margin-bottom: 6px;">🪙 Reward: ${reward} Coins</div>
-                    <a href="${item.link}" target="_blank" onclick="rewardPromo(${reward})" style="display:inline-block; background:#00a884; color:#111b21; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">Visit Link 🚀</a>
-                `;
-                container.appendChild(box);
-            });
-        });
-    }
+/* Center Wrapper */
+.wrapper{
+  position:relative;
+  z-index:6;
+  width:100%;
+  max-width:500px;
+  margin:0 auto;
+  padding-top:70px;
+  text-align:center;
+  flex-grow:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+}
 
-    function rewardPromo(rewardAmount) { 
-        if (currentUserPhone && db) { userCoins += rewardAmount; updateBalanceUI(); db.ref('users/' + currentUserPhone + '/coins').set(userCoins); } 
-    }
+/* Christmas Tree Styling */
+.tree-box{
+  margin-bottom:15px;
+  filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+}
+.tree-box svg{width:110px;height:auto}
 
-    function updateBalanceUI() {
-        document.getElementById('coins').innerText = userCoins;
-        document.getElementById('diamonds').innerText = userDiamonds;
-        document.getElementById('dollars').innerText = (userCoins * (5 / 50000)).toFixed(2);
-    }
+/* Bottom Snow Hill Section */
+.snow-hill{
+  position:relative;
+  z-index:7;
+  width:100%;
+  background:#f8f9fa;
+  border-radius:50% 50% 0 0 / 45px 45px 0 0;
+  padding:40px 20px 50px 20px;
+  text-align:center;
+  box-shadow:0 -10px 30px rgba(0,0,0,0.3);
+  margin-top:auto;
+}
 
-    function toggleDropdown() { document.getElementById('dropdownMenu').classList.toggle('hidden'); }
-    function openAdminDashboardModal() { toggleDropdown(); document.getElementById('adminDashboardModal').classList.remove('hidden'); }
-    function closeAdminDashboardModal() { document.getElementById('adminDashboardModal').classList.add('hidden'); }
-    function openPromotionModal() { document.getElementById('promotionModal').classList.remove('hidden'); toggleDropdown(); }
-    function closePromotionModal() { document.getElementById('promotionModal').classList.add('hidden'); }
-    function calculateDiamonds() {
-        let amt = parseInt(document.getElementById('depositAmount').value) || 0;
-        document.getElementById('estimatedDiamonds').innerText = (amt / 100) * 300;
-    }
-    function submitPromotionRequest() {
-        let category = document.getElementById('promoCategory').value;
-        let title = document.getElementById('promoTitle').value.trim();
-        let desc = document.getElementById('promoDesc').value.trim();
-        let link = document.getElementById('promoLink').value.trim();
-        let depositMethod = document.getElementById('depositMethod').value;
-        let depositAmount = parseInt(document.getElementById('depositAmount').value) || 0;
-        let txId = document.getElementById('transactionId').value.trim();
-        if (!title || !desc || !link || !depositAmount || !txId) { alert("Please fill all fields!"); return; }
-        if (depositAmount < 100) { alert("Minimum deposit is 100 PKR!"); return; }
-        let assignedDiamonds = (depositAmount / 100) * 300;
-        db.ref('promos_pending').push({ user_id: userId, phone: currentUserPhone, category, title, desc, link, depositMethod, depositAmount, assignedDiamonds, txId });
-        document.getElementById('promoTitle').value = ''; document.getElementById('promoDesc').value = ''; document.getElementById('promoLink').value = ''; document.getElementById('depositAmount').value = ''; document.getElementById('transactionId').value = '';
-        closePromotionModal(); alert("Submitted for approval!");
-    }
-    function openPrivacyModal() { document.getElementById('privacyModal').classList.remove('hidden'); toggleDropdown(); }
-    function closePrivacyModal() { document.getElementById('privacyModal').classList.add('hidden'); }
-    function openAllUsersDataModal() {
-        db.ref('users').once('value').then(snapshot => {
-            let dbVal = snapshot.val() || {};
-            let container = document.getElementById('allUsersListContainer');
-            container.innerHTML = "";
-            Object.keys(dbVal).forEach(ph => {
-                let u = dbVal[ph];
-                container.innerHTML += `<div class="user-data-row" style="font-size:12px;"><b>ID: ${u.user_id || 'N/A'}</b> | Phone: ${ph}<br>Coins: ${u.coins || 0} | Diamonds: ${u.diamonds || 0}<br><button onclick="modifyCoins('${ph}', 100)" style="padding:4px; background:#10b981; width:auto;">+100</button> <button onclick="modifyCoins('${ph}', -100)" style="padding:4px; background:#ef4444; width:auto;">-100</button></div>`;
-            });
-            document.getElementById('allUsersDataModal').classList.remove('hidden');
-        });
-    }
-    function closeAllUsersDataModal() { document.getElementById('allUsersDataModal').classList.add('hidden'); }
-    function modifyCoins(phone, amount) { db.ref('users/' + phone + '/coins').transaction(c => Math.max(0, (Number(c) || 0) + amount)).then(() => { alert("Updated!"); openAllUsersDataModal(); }); }
-    function openAdminPromoApprovalModal() {
-        db.ref('promos_pending').once('value').then(snapshot => {
-            let pending = snapshot.val() || {};
-            let container = document.getElementById('pendingPromoListContainer');
-            container.innerHTML = Object.keys(pending).length === 0 ? "<p style='text-align:center;'>No pending promos.</p>" : "";
-            Object.keys(pending).forEach(key => {
-                let item = pending[key];
-                container.innerHTML += `<div class="user-data-row" style="font-size:12px;"><b>Title:</b> ${item.title}<br><b>Deposit:</b> ${item.depositAmount} PKR<br><button onclick="approvePromo('${key}')" style="background:#10b981; padding:5px;">Approve ✅</button> <button onclick="rejectPromo('${key}')" style="background:#ef4444; padding:5px;">Reject ❌</button></div>`;
-            });
-            document.getElementById('adminPromoApprovalModal').classList.remove('hidden');
-        });
-    }
-    function closeAdminPromoApprovalModal() { document.getElementById('adminPromoApprovalModal').classList.add('hidden'); }
-    function approvePromo(key) {
-        db.ref('promos_pending/' + key).once('value').then(snapshot => {
-            let item = snapshot.val();
-            if (item) {
-                let rewardCoins = parseInt(prompt("Enter reward coins for this task:", "7")) || 7;
-                item.rewardCoins = rewardCoins;
-                db.ref('promos_approved').push(item);
-                db.ref('users').orderByChild('user_id').equalTo(item.user_id).once('value').then(userSnap => {
-                    if (userSnap.exists()) {
-                        let userKey = Object.keys(userSnap.val())[0];
-                        db.ref('users/' + userKey + '/diamonds').transaction(d => (Number(d) || 0) + Number(item.assignedDiamonds));
-                    }
-                });
-                db.ref('promos_pending/' + key).remove();
-                alert("Approved!");
-                openAdminPromoApprovalModal();
-            }
-        });
-    }
-    function rejectPromo(key) { db.ref('promos_pending/' + key).remove(); alert("Rejected."); openAdminPromoApprovalModal(); }
-    function copyReferralLink() { navigator.clipboard.writeText(document.getElementById('refLink').innerText); alert("Copied!"); }
-    function withdrawDollars() {
-        let method = document.getElementById('method').value;
-        let acc = document.getElementById('accountNo').value.trim();
-        let currentDollars = Number((userCoins * (5 / 50000)).toFixed(2));
-        if (!acc) { alert("Enter account number!"); return; }
-        let isAdmin = (userId === ADMIN_TARGET_ID || currentUserPhone.includes(ADMIN_PHONE_KEY));
-        if (currentDollars < 5.00 && !isAdmin) { alert("Minimum withdrawal is $5.00!"); return; }
-        if (!isAdmin) { userCoins -= 50000; updateBalanceUI(); db.ref('users/' + currentUserPhone + '/coins').set(userCoins); }
-        window.open(`https://t.me/Ali69291?text=${encodeURIComponent(`Withdraw ($5):\nID:${userId}\nMethod: ${method}\nAcc:${acc}`)}`, '_blank');
-    }
-    function openSupport() { window.open(`https://t.me/Ali69291?text=${encodeURIComponent("Help for ID: " + userId)}`, '_blank'); }
-    function logout() { localStorage.removeItem('activeUser'); location.reload(); }
-</script>
-</body>
-</html>
+/* Heading Typography */
+.wish-heading{
+  font-family:'Mountains of Christmas',cursive;
+  color:#b3202f;
+  font-size:2.2rem;
+  font-weight:700;
+  margin-bottom:20px;
+  text-shadow:1px 1px 2px rgba(0,0,0,0.1);
+}
 
+/* WhatsApp Share Button Style */
+.wa-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  background:#25D366;
+  color:#ffffff;
+  font-size:1.3rem;
+  font-weight:700;
+  letter-spacing:1px;
+  padding:16px 42px;
+  border-radius:50px;
+  text-decoration:none;
+  box-shadow:0 8px 25px rgba(37,211,102,0.4);
+  transition:all .2s ease;
+  text-transform:uppercase;
+}
+.wa-btn:hover,.wa-btn:active{
+  transform:scale(1.04);
+  box-shadow:0 12px 30px rgba(37,211,102,0.6);
+  background:#20ba5a;
+}
+.wa-btn svg{width:30px;height:30px;fill:#ffffff}
+
+/* Responsive Breakpoints for Mobile */
+@media (max-width:480px){
+  .wish-heading{font-size:1.8rem}
+  .wa-btn{font-size:1.1rem;padding:14px 32px}
+  .tree-box svg{width:90px}
+}/* Base Resets & Layout Settings */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow-x:hidden}
+body{
+  font-family:'Poppins',sans-serif;
+  background:#0d3b2e;
+  background:radial-gradient(circle at 50% 20%, #175443 0%, #0a2b21 70%, #051a14 100%);
+  color:#fff;
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+/* Top Garland Lights Styling */
+.garland{position:fixed;top:0;left:0;width:100%;height:60px;z-index:10;pointer-events:none}
+.garland svg{width:100%;height:100%}
+.bulb ellipse{filter:drop-shadow(0 0 6px currentColor)}
+.bulb{animation:twinkle 2s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Falling Snow Animation */
+.snow{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:5}
+.flake{position:absolute;top:-10px;background:#fff;border-radius:50%;animation:fall linear infinite}
+@keyframes fall{to{transform:translate3d(30px,105vh,0)}}
+
+/* Center Wrapper */
+.wrapper{
+  position:relative;
+  z-index:6;
+  width:100%;
+  max-width:500px;
+  margin:0 auto;
+  padding-top:70px;
+  text-align:center;
+  flex-grow:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+}
+
+/* Christmas Tree Styling */
+.tree-box{
+  margin-bottom:15px;
+  filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+}
+.tree-box svg{width:110px;height:auto}
+
+/* Bottom Snow Hill Section */
+.snow-hill{
+  position:relative;
+  z-index:7;
+  width:100%;
+  background:#f8f9fa;
+  border-radius:50% 50% 0 0 / 45px 45px 0 0;
+  padding:40px 20px 50px 20px;
+  text-align:center;
+  box-shadow:0 -10px 30px rgba(0,0,0,0.3);
+  margin-top:auto;
+}
+
+/* Heading Typography */
+.wish-heading{
+  font-family:'Mountains of Christmas',cursive;
+  color:#b3202f;
+  font-size:2.2rem;
+  font-weight:700;
+  margin-bottom:20px;
+  text-shadow:1px 1px 2px rgba(0,0,0,0.1);
+}
+
+/* WhatsApp Share Button Style */
+.wa-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  background:#25D366;
+  color:#ffffff;
+  font-size:1.3rem;
+  font-weight:700;
+  letter-spacing:1px;
+  padding:16px 42px;
+  border-radius:50px;
+  text-decoration:none;
+  box-shadow:0 8px 25px rgba(37,211,102,0.4);
+  transition:all .2s ease;
+  text-transform:uppercase;
+}
+.wa-btn:hover,.wa-btn:active{
+  transform:scale(1.04);
+  box-shadow:0 12px 30px rgba(37,211,102,0.6);
+  background:#20ba5a;
+}
+.wa-btn svg{width:30px;height:30px;fill:#ffffff}
+
+/* Responsive Breakpoints for Mobile */
+@media (max-width:480px){
+  .wish-heading{font-size:1.8rem}
+  .wa-btn{font-size:1.1rem;padding:14px 32px}
+  .tree-box svg{width:90px}
+}
+    </body>
+            </html>
+    
+    
