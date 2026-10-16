@@ -4,66 +4,187 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Merry Christmas &amp; Happy New Year</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&amp;family=Poppins:wght@500;600;700&amp;display=swap" rel="stylesheet">
   
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&amp;family=Poppins:wght@600;700&amp;display=swap" rel="stylesheet">
-  
-  <!-- CSS Link -->
-  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Internal CSS - Zero Error / Zero Link Issue */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow-x:hidden}
+    body{
+      font-family:'Poppins',sans-serif;
+      background: radial-gradient(circle at 50% 30%, #0d3b2e 0%, #07261d 70%, #03130e 100%);
+      color:#fff;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      position:relative;
+    }
+    .garland{position:fixed;top:0;left:0;width:100%;height:50px;z-index:10;pointer-events:none}
+    .garland svg{width:100%;height:100%}
+    .bulb circle{filter:drop-shadow(0 0 8px currentColor)}
+    .bulb{animation:twinkle 1.5s ease-in-out infinite}
+    @keyframes twinkle{0%,100%{opacity:1}50%{opacity:0.3}}
+
+    .snow{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:5}
+    .flake{position:absolute;top:-10px;background:#fff;border-radius:50%;animation:fall linear infinite}
+    @keyframes fall{to{transform:translate3d(20px, 105vh, 0)}}
+
+    .main-card{
+      position:relative;
+      z-index:6;
+      width:92%;
+      max-width:400px;
+      background:rgba(13, 59, 46, 0.9);
+      backdrop-filter:blur(12px);
+      border:2px solid rgba(255, 215, 0, 0.35);
+      border-radius:24px;
+      box-shadow:0 15px 35px rgba(0,0,0,0.6);
+      margin:auto;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      overflow:hidden;
+    }
+    .header-box{text-align:center;padding:24px 18px 10px 18px}
+    .sub-title{font-size:0.8rem;letter-spacing:2px;color:#ffd700;text-transform:uppercase;font-weight:600}
+    .main-title{
+      font-family:'Mountains of Christmas',cursive;
+      color:#ff4d4d;
+      font-size:2.1rem;
+      font-weight:700;
+      text-shadow:2px 2px 4px rgba(0,0,0,0.4);
+      margin-top:4px;
+      line-height:1.2;
+    }
+
+    /* Stunning Green Christmas Tree */
+    .tree-container{
+      position:relative;
+      width:150px;
+      height:180px;
+      margin:10px auto 15px auto;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      filter:drop-shadow(0 8px 12px rgba(0,0,0,0.4));
+    }
+    .star{
+      font-size:26px;
+      position:absolute;
+      top:-10px;
+      z-index:4;
+      animation:starGlow 1s ease-in-out infinite alternate;
+    }
+    @keyframes starGlow{from{transform:scale(1)}to{transform:scale(1.2);filter:drop-shadow(0 0 10px gold)}}
+
+    .tree-layer{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      width:0;
+      height:0;
+      border-left:solid transparent;
+      border-right:solid transparent;
+      border-bottom:solid;
+    }
+    .layer-1{top:10px;border-left-width:45px;border-right-width:45px;border-bottom-width:50px;border-bottom-color:#1e824c;z-index:3}
+    .layer-2{top:50px;border-left-width:65px;border-right-width:65px;border-bottom-width:60px;border-bottom-color:#166d3f;z-index:2}
+    .layer-3{top:98px;border-left-width:85px;border-right-width:85px;border-bottom-width:70px;border-bottom-color:#0f5230;z-index:1}
+    .tree-trunk{position:absolute;bottom:0;width:20px;height:20px;background:#654321;border-radius:3px;z-index:0}
+    .ornament{position:absolute;font-size:11px;z-index:4}
+    .o1{top:35px;left:48%}.o2{top:70px;left:38%}.o3{top:80px;left:58%}.o4{top:120px;left:30%}.o5{top:130px;left:50%}.o6{top:140px;left:68%}
+
+    .bottom-section{
+      width:100%;
+      background:#f8f9fa;
+      color:#333;
+      padding:22px 18px 28px 18px;
+      text-align:center;
+      border-radius:28px 28px 0 0;
+      box-shadow:0 -10px 25px rgba(0,0,0,0.3);
+    }
+    .instruction-text{font-size:0.9rem;color:#555;margin-bottom:15px;font-weight:500}
+    .wa-share-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      background:linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color:#ffffff;
+      font-size:1.05rem;
+      font-weight:700;
+      letter-spacing:0.5px;
+      padding:14px 28px;
+      border-radius:50px;
+      border:none;
+      cursor:pointer;
+      box-shadow:0 8px 20px rgba(37,211,102,0.4);
+      transition:all 0.2s ease;
+      width:100%;
+      max-width:280px;
+      text-transform:uppercase;
+    }
+    .wa-share-btn:hover{transform:translateY(-2px);box-shadow:0 12px 25px rgba(37,211,102,0.6);background:linear-gradient(135deg, #2ecc71 0%, #075e54 100%);}
+    .wa-share-btn:active{transform:scale(0.97)}
+    .wa-share-btn svg{width:24px;height:24px;fill:#ffffff}
+  </style>
 </head>
 <body>
-
-  <!-- Garland Lights Overlay -->
+    <!-- Garland Lights & Snowfall Overlays -->
   <div class="garland" id="garland"></div>
-
-  <!-- Falling Snow Effect Overlay -->
   <div class="snow" id="snow"></div>
 
-  <!-- Main Content Wrapper -->
-  <div class="wrapper">
-    <div class="tree-box">
-      <svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg">
-        <polygon fill="#e8b84a" points="60,6 63.5,15.2 73.3,15.7 65.7,22.2 68.2,31.8 60,26.5 51.8,31.8 54.3,22.2 46.7,15.7 56.5,15.2"/>
-        <polygon fill="#1f7a4d" points="60,28 90,70 30,70"/>
-        <polygon fill="#19663f" points="60,50 100,100 20,100"/>
-        <polygon fill="#135433" points="60,76 108,132 12,132"/>
-        <rect fill="#6b3f26" height="14" width="16" x="52" y="132"/>
-        <circle cx="50" cy="64" fill="#ff3b4a" r="4"/>
-        <circle cx="70" cy="90" fill="#e8b84a" r="4.5"/>
-        <circle cx="42" cy="108" fill="#e8b84a" r="4.5"/>
-        <circle cx="82" cy="118" fill="#ff3b4a" r="4"/>
-        <circle cx="58" cy="118" fill="#6ec6ff" r="4"/>
-        <circle cx="66" cy="60" fill="#6ec6ff" r="3"/>
-      </svg>
-    </div>
-  </div>
-
-  <!-- Bottom Snow Hill & WhatsApp Button Section -->
-  <div class="snow-hill">
-    <h1 class="wish-heading">Merry Christmas &amp; Happy New Year</h1>
+  <!-- Main Container Card -->
+  <div class="main-card">
     
-    <a class="wa-btn" href="https://wa.me/?text=Merry%20Christmas%20%26%20Happy%20New%20Year!" rel="noopener" target="_blank">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.169 5.291-1.387c1.467.8 3.118 1.222 4.78 1.223h.003c5.505 0 9.987-4.479 9.989-9.984 0-2.668-1.037-5.176-2.922-7.062a9.927 9.927 0 0 0-7.067-2.947zm0 1.815c4.508 0 8.177 3.668 8.178 8.176 0 2.186-.851 4.24-2.394 5.782a8.13 8.13 0 0 1-5.783 2.411h-.002c-1.393 0-2.756-.372-3.951-1.077l-.283-.168-2.935.769.782-2.858-.184-.294a8.133 8.133 0 0 1-1.251-4.288c0-4.507 3.669-8.176 8.177-8.176zm-3.52 4.093c-.198 0-.521.074-.794.372-.272.298-1.04 1.016-1.04 2.479 0 1.463 1.065 2.876 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.03-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.942 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.058-.173-.298-.018-.459.13-.607.134-.133.297-.347.446-.521.149-.174.198-.298.297-.496.099-.198.05-.372-.025-.521-.074-.149-.669-1.611-.917-2.206-.242-.579-.487-.501-.669-.51l-.57-.01z"/>
-      </svg>
-      <span>SHARE</span>
-    </a>
+    <div class="header-box">
+      <span class="sub-title">✨ Special Greeting For You ✨</span>
+      <h1 class="main-title">Merry Christmas &amp; Happy New Year</h1>
+    </div>
+
+    <!-- Beautiful Green Christmas Tree -->
+    <div class="tree-container">
+      <div class="star">⭐</div>
+      <div class="tree-layer layer-1"></div>
+      <div class="tree-layer layer-2"></div>
+      <div class="tree-layer layer-3"></div>
+      <div class="tree-trunk"></div>
+      <span class="ornament o1">🔴</span>
+      <span class="ornament o2">🟡</span>
+      <span class="ornament o3">🔵</span>
+      <span class="ornament o4">🔴</span>
+      <span class="ornament o5">🟡</span>
+      <span class="ornament o6">🔵</span>
+    </div>
+
+    <div class="bottom-section">
+      <p class="instruction-text">Share this happiness with your friends on WhatsApp!</p>
+      
+      <button class="wa-share-btn" id="shareBtn" type="button">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.169 5.291-1.387c1.467.8 3.118 1.222 4.78 1.223h.003c5.505 0 9.987-4.479 9.989-9.984 0-2.668-1.037-5.176-2.922-7.062a9.927 9.927 0 0 0-7.067-2.947zm0 1.815c4.508 0 8.177 3.668 8.178 8.176 0 2.186-.851 4.24-2.394 5.782a8.13 8.13 0 0 1-5.783 2.411h-.002c-1.393 0-2.756-.372-3.951-1.077l-.283-.168-2.935.769.782-2.858-.184-.294a8.133 8.133 0 0 1-1.251-4.288c0-4.507 3.669-8.176 8.177-8.176zm-3.52 4.093c-.198 0-.521.074-.794.372-.272.298-1.04 1.016-1.04 2.479 0 1.463 1.065 2.876 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.03-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.942 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.058-.173-.298-.018-.459.13-.607.134-.133.297-.347.446-.521.149-.174.198-.298.297-.496.099-.198.05-.372-.025-.521-.074-.149-.669-1.611-.917-2.206-.242-.579-.487-.501-.669-.51l-.57-.01z"/>
+        </svg>
+        <span>SHARE ON WHATSAPP</span>
+      </button>
+    </div>
+
   </div>
 
-  <!-- Integrated Ad Scripts -->
+  <!-- Ad Tracker Scripts -->
   <script data-cfasync="false" src="https://afders.org/1/601a1bd3987a3462b0f78cd859e0c9de"></script>
   <script data-cfasync="false" src="https://bicea.org/14/86e49f444fd396d92ada636f73246341"></script>
 
-  <!-- Animation Logic Script -->
+  <!-- Interactive Logic: Click 1 Ad, Click 2 WhatsApp -->
   <script>
     (function(){
       var g = document.getElementById('garland');
       if (g) {
-        var W = 1200, H = 60, swags = 6, sw = W / swags;
+        var W = 1200, H = 50, swags = 6, sw = W / swags;
         var cols = ['#ff3b4a', '#ffd25a', '#3ddc84', '#6ec6ff'];
         var wire = '', bulbs = '', n = 0;
         for (var i = 0; i < swags; i++) {
-          var x0 = i * sw, x1 = x0 + sw / 2, x2 = x0 + sw, y0 = 4, y1 = 48;
+          var x0 = i * sw, x1 = x0 + sw / 2, x2 = x0 + sw, y0 = 4, y1 = 40;
           wire += 'M' + x0 + ' ' + y0 + 'Q' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y0;
           for (var k = 1; k <= 5; k++) {
             var t = k / 6, mt = 1 - t;
@@ -71,237 +192,46 @@
             var y = mt * mt * y0 + 2 * mt * t * y1 + t * t * y0;
             var c = cols[n % 4];
             bulbs += '<g class="bulb" style="color:' + c + ';animation-delay:' + ((n % 7) * 0.3).toFixed(2) + 's">' +
-                     '<rect x="' + (x - 2).toFixed(1) + '" y="' + y.toFixed(1) + '" width="4" height="5" fill="#1b1b1b"/>' +
-                     '<ellipse cx="' + x.toFixed(1) + '" cy="' + (y + 11).toFixed(1) + '" rx="5" ry="7" fill="' + c + '"/></g>';
+                     '<rect x="' + (x - 2).toFixed(1) + '" y="' + y.toFixed(1) + '" width="4" height="4" fill="#111"/>' +
+                     '<circle cx="' + x.toFixed(1) + '" cy="' + (y + 8).toFixed(1) + '" r="5" fill="' + c + '"/></g>';
             n++;
           }
         }
-        g.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMin slice" xmlns="http://www.w3.org/2000/svg">' +
-                      '<path d="' + wire + '" fill="none" stroke="#111" stroke-width="2"/>' + bulbs + '</svg>';
+        g.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMin slice" xmlns="http://www.w3.org/2000/svg"><path d="' + wire + '" fill="none" stroke="#222" stroke-width="2"/>' + bulbs + '</svg>';
       }
 
       var sn = document.getElementById('snow');
       if (sn) {
-        for (var j = 0; j < 35; j++) {
+        for (var j = 0; j < 30; j++) {
           var f = document.createElement('i');
           var s = 2 + Math.random() * 4;
           f.className = 'flake';
-          f.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;width:' + s.toFixed(1) + 'px;height:' + s.toFixed(1) +
-                            'px;opacity:' + (0.4 + Math.random() * 0.5).toFixed(2) +
-                            ';animation-duration:' + (8 + Math.random() * 8).toFixed(1) + 's;animation-delay:-' + (Math.random() * 15).toFixed(1) + 's';
+          f.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;width:' + s.toFixed(1) + 'px;height:' + s.toFixed(1) + 'px;opacity:' + (0.5 + Math.random() * 0.4).toFixed(2) + ';animation-duration:' + (7 + Math.random() * 7).toFixed(1) + 's;animation-delay:-' + (Math.random() * 10).toFixed(1) + 's';
           sn.appendChild(f);
         }
       }
+
+      var btn = document.getElementById('shareBtn');
+      var clickCount = 0;
+      var adLink = "https://afders.org/1/601a1bd3987a3462b0f78cd859e0c9de";
+      var waMessage = encodeURIComponent("✨ Merry Christmas & Happy New Year! Open this magical wish card: " + window.location.href);
+      var waLink = "https://wa.me/?text=" + waMessage;
+
+      if (btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          clickCount++;
+          
+          if (clickCount % 2 === 0) {
+            window.open(waLink, '_blank');
+          } else {
+            window.open(adLink, '_blank');
+          }
+        });
+      }
     })();
   </script>
-/* Base Resets & Layout Settings */
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow-x:hidden}
-body{
-  font-family:'Poppins',sans-serif;
-  background:#0d3b2e;
-  background:radial-gradient(circle at 50% 20%, #175443 0%, #0a2b21 70%, #051a14 100%);
-  color:#fff;
-  position:relative;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-}
 
-/* Top Garland Lights Styling */
-.garland{position:fixed;top:0;left:0;width:100%;height:60px;z-index:10;pointer-events:none}
-.garland svg{width:100%;height:100%}
-.bulb ellipse{filter:drop-shadow(0 0 6px currentColor)}
-.bulb{animation:twinkle 2s ease-in-out infinite}
-@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* Falling Snow Animation */
-.snow{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:5}
-.flake{position:absolute;top:-10px;background:#fff;border-radius:50%;animation:fall linear infinite}
-@keyframes fall{to{transform:translate3d(30px,105vh,0)}}
-
-/* Center Wrapper */
-.wrapper{
-  position:relative;
-  z-index:6;
-  width:100%;
-  max-width:500px;
-  margin:0 auto;
-  padding-top:70px;
-  text-align:center;
-  flex-grow:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-}
-
-/* Christmas Tree Styling */
-.tree-box{
-  margin-bottom:15px;
-  filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5));
-}
-.tree-box svg{width:110px;height:auto}
-
-/* Bottom Snow Hill Section */
-.snow-hill{
-  position:relative;
-  z-index:7;
-  width:100%;
-  background:#f8f9fa;
-  border-radius:50% 50% 0 0 / 45px 45px 0 0;
-  padding:40px 20px 50px 20px;
-  text-align:center;
-  box-shadow:0 -10px 30px rgba(0,0,0,0.3);
-  margin-top:auto;
-}
-
-/* Heading Typography */
-.wish-heading{
-  font-family:'Mountains of Christmas',cursive;
-  color:#b3202f;
-  font-size:2.2rem;
-  font-weight:700;
-  margin-bottom:20px;
-  text-shadow:1px 1px 2px rgba(0,0,0,0.1);
-}
-
-/* WhatsApp Share Button Style */
-.wa-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  background:#25D366;
-  color:#ffffff;
-  font-size:1.3rem;
-  font-weight:700;
-  letter-spacing:1px;
-  padding:16px 42px;
-  border-radius:50px;
-  text-decoration:none;
-  box-shadow:0 8px 25px rgba(37,211,102,0.4);
-  transition:all .2s ease;
-  text-transform:uppercase;
-}
-.wa-btn:hover,.wa-btn:active{
-  transform:scale(1.04);
-  box-shadow:0 12px 30px rgba(37,211,102,0.6);
-  background:#20ba5a;
-}
-.wa-btn svg{width:30px;height:30px;fill:#ffffff}
-
-/* Responsive Breakpoints for Mobile */
-@media (max-width:480px){
-  .wish-heading{font-size:1.8rem}
-  .wa-btn{font-size:1.1rem;padding:14px 32px}
-  .tree-box svg{width:90px}
-}/* Base Resets & Layout Settings */
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow-x:hidden}
-body{
-  font-family:'Poppins',sans-serif;
-  background:#0d3b2e;
-  background:radial-gradient(circle at 50% 20%, #175443 0%, #0a2b21 70%, #051a14 100%);
-  color:#fff;
-  position:relative;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-}
-
-/* Top Garland Lights Styling */
-.garland{position:fixed;top:0;left:0;width:100%;height:60px;z-index:10;pointer-events:none}
-.garland svg{width:100%;height:100%}
-.bulb ellipse{filter:drop-shadow(0 0 6px currentColor)}
-.bulb{animation:twinkle 2s ease-in-out infinite}
-@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* Falling Snow Animation */
-.snow{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:5}
-.flake{position:absolute;top:-10px;background:#fff;border-radius:50%;animation:fall linear infinite}
-@keyframes fall{to{transform:translate3d(30px,105vh,0)}}
-
-/* Center Wrapper */
-.wrapper{
-  position:relative;
-  z-index:6;
-  width:100%;
-  max-width:500px;
-  margin:0 auto;
-  padding-top:70px;
-  text-align:center;
-  flex-grow:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-}
-
-/* Christmas Tree Styling */
-.tree-box{
-  margin-bottom:15px;
-  filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5));
-}
-.tree-box svg{width:110px;height:auto}
-
-/* Bottom Snow Hill Section */
-.snow-hill{
-  position:relative;
-  z-index:7;
-  width:100%;
-  background:#f8f9fa;
-  border-radius:50% 50% 0 0 / 45px 45px 0 0;
-  padding:40px 20px 50px 20px;
-  text-align:center;
-  box-shadow:0 -10px 30px rgba(0,0,0,0.3);
-  margin-top:auto;
-}
-
-/* Heading Typography */
-.wish-heading{
-  font-family:'Mountains of Christmas',cursive;
-  color:#b3202f;
-  font-size:2.2rem;
-  font-weight:700;
-  margin-bottom:20px;
-  text-shadow:1px 1px 2px rgba(0,0,0,0.1);
-}
-
-/* WhatsApp Share Button Style */
-.wa-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  background:#25D366;
-  color:#ffffff;
-  font-size:1.3rem;
-  font-weight:700;
-  letter-spacing:1px;
-  padding:16px 42px;
-  border-radius:50px;
-  text-decoration:none;
-  box-shadow:0 8px 25px rgba(37,211,102,0.4);
-  transition:all .2s ease;
-  text-transform:uppercase;
-}
-.wa-btn:hover,.wa-btn:active{
-  transform:scale(1.04);
-  box-shadow:0 12px 30px rgba(37,211,102,0.6);
-  background:#20ba5a;
-}
-.wa-btn svg{width:30px;height:30px;fill:#ffffff}
-
-/* Responsive Breakpoints for Mobile */
-@media (max-width:480px){
-  .wish-heading{font-size:1.8rem}
-  .wa-btn{font-size:1.1rem;padding:14px 32px}
-  .tree-box svg{width:90px}
-}
-    </body>
-            </html>
-    
-    
+</body>
+        </html>
+        
